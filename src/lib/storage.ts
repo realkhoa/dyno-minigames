@@ -62,6 +62,27 @@ export function clearGameProgress(game: string, puzzleId: string): void {
   }
 }
 
+/* Generic JSON slots for games whose state is not a 0/1/2 cell grid. */
+
+export function loadGameJson<T>(game: string, puzzleId: string): T | null {
+  if (!store) return null;
+  try {
+    const raw = store.getItem(`${PREFIX}:${game}:${puzzleId}`);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveGameJson<T>(game: string, puzzleId: string, value: T): void {
+  if (!store) return;
+  try {
+    store.setItem(`${PREFIX}:${game}:${puzzleId}`, JSON.stringify(value));
+  } catch {
+    // ignore
+  }
+}
+
 /* Tango-specific aliases kept for the existing game and dashboard. */
 
 export function loadTangoProgress(puzzleId: string): TangoProgress | null {

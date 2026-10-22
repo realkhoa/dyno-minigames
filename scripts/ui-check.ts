@@ -10,6 +10,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { generatePuzzle, todayKey } from "../src/games/tango/engine.ts";
 import { generatePuzzle as generateQueens } from "../src/games/queens/engine.ts";
+import { generatePuzzle as generateZip } from "../src/games/zip/engine.ts";
+import { generatePuzzle as generateSudoku } from "../src/games/sudoku/engine.ts";
 
 const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const PORT = 9333;
@@ -399,6 +401,113 @@ try {
     "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
   );
   check("queens solve opens the win dialog", queensWin.length > 0, queensWin);
+
+  /* ---------------- Zip ---------------- */
+
+  await cdp.evaluate<void>("location.hash = '#/zip'");
+  await waitFor(
+    cdp,
+    "document.querySelectorAll('.zip-cell').length === 36",
+    "the Zip board",
+    6000,
+  );
+
+  const zipPuzzle = generateZip(todayKey(), "medium");
+  const startCell = zipPuzzle.numbers[0].index;
+  const startRow = Math.floor(startCell / 6);
+  const startCol = startCell % 6;
+  const farCell = Array.from({ length: 36 }, (_, i) => i).find((i) => {
+    const row = Math.floor(i / 6);
+    const col = i % 6;
+    return Math.abs(row - startRow) + Math.abs(col - startCol) > 1;
+  })!;
+  await cdp.evaluate<void>(`document.querySelectorAll('.zip-cell')[${startCell}].click()`);
+  await sleep(120);
+  const started = await cdp.evaluate<number>(
+    "document.querySelectorAll('.zip-cell.is-visited').length",
+  );
+  check("zip starts on the first number", started === 1, `${started} cells`);
+
+  const beforeJump = await cdp.evaluate<number>(
+    "document.querySelectorAll('.zip-cell.is-visited').length",
+  );
+  await cdp.evaluate<void>(`document.querySelectorAll('.zip-cell')[${farCell}].click()`);
+  await sleep(100);
+  const afterJump = await cdp.evaluate<number>(
+    "document.querySelectorAll('.zip-cell.is-visited').length",
+  );
+  check("zip ignores non-adjacent taps", afterJump === beforeJump, `${afterJump} cells`);
+
+  await cdp.evaluate(
+    `(async () => {
+      const solution = ${JSON.stringify(zipPuzzle.solution)};
+      const cells = [...document.querySelectorAll('.zip-cell')];
+      for (const index of solution) {
+        cells[index].click();
+        await new Promise((r) => setTimeout(r, 12));
+      }
+    })()`,
+  );
+
+  await waitFor(cdp, "!!document.querySelector('.modal-card.is-win')", "the Zip win dialog", 8000);
+  const zipLine = await cdp.evaluate<boolean>("!!document.querySelector('.zip-path polyline')");
+  const zipWin = await cdp.evaluate<string>(
+    "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
+  );
+  check("zip draws the path", zipLine);
+  check("zip completes the board", zipWin.length > 0, zipWin);
+
+  /* ---------------- Mini Sudoku ---------------- */
+
+  await cdp.evaluate<void>("location.hash = '#/sudoku'");
+  await waitFor(
+    cdp,
+    "document.querySelectorAll('.sudoku-cell').length === 36",
+    "the Sudoku board",
+    6000,
+  );
+  const sudokuPuzzle = generateSudoku(todayKey(), "medium");
+  const givenIndex = sudokuPuzzle.givens.findIndex((value) => value !== 0);
+  const givenText = await cdp.evaluate<string>(
+    `document.querySelectorAll('.sudoku-cell')[${givenIndex}].textContent`,
+  );
+  await cdp.evaluate<void>(`document.querySelectorAll('.sudoku-cell')[${givenIndex}].click()`);
+  await sleep(80);
+  await cdp.evaluate<void>(
+    `document.querySelectorAll('.sudoku-key')[${(sudokuPuzzle.givens[givenIndex] % 6)}].click()`,
+  );
+  await sleep(120);
+  const givenAfter = await cdp.evaluate<string>(
+    `document.querySelectorAll('.sudoku-cell')[${givenIndex}].textContent`,
+  );
+  check("sudoku clues cannot be edited", givenText === givenAfter, `${givenText} → ${givenAfter}`);
+
+  await cdp.evaluate(
+    `(async () => {
+      const solution = ${JSON.stringify(sudokuPuzzle.solution)};
+      const givens = ${JSON.stringify(sudokuPuzzle.givens)};
+      const cells = [...document.querySelectorAll('.sudoku-cell')];
+      const keys = [...document.querySelectorAll('.sudoku-key')];
+      for (let i = 0; i < cells.length; i++) {
+        if (givens[i]) continue;
+        cells[i].click();
+        await new Promise((r) => setTimeout(r, 16));
+        keys[solution[i] - 1].click();
+        await new Promise((r) => setTimeout(r, 16));
+      }
+    })()`,
+  );
+
+  await waitFor(
+    cdp,
+    "!!document.querySelector('.modal-card.is-win')",
+    "the Sudoku win dialog",
+    8000,
+  );
+  const sudokuWin = await cdp.evaluate<string>(
+    "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
+  );
+  check("sudoku solve opens the win dialog", sudokuWin.length > 0, sudokuWin);
 
   check("no page exceptions", cdp.errors.length === 0, cdp.errors.slice(0, 2).join(" | "));
 } catch (error) {

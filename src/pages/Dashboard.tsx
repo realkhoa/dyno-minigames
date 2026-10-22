@@ -11,7 +11,7 @@ import {
   ZipMark,
 } from "../components/icons";
 import { todayKey } from "../games/tango/engine";
-import { loadGameProgress } from "../lib/storage";
+import { loadGameJson, loadGameProgress } from "../lib/storage";
 
 interface GameEntry {
   id: string;
@@ -46,16 +46,18 @@ const GAMES: GameEntry[] = [
     id: "zip",
     name: "Zip",
     blurb: "Draw one path through every cell, hitting the numbers in order.",
-    meta: "Path puzzle",
-    status: "soon",
+    meta: "4 sizes · checkpoints",
+    status: "live",
+    href: "#/zip",
     mark: <ZipMark />,
   },
   {
     id: "sudoku",
     name: "Mini Sudoku",
     blurb: "A 6×6 sudoku: every row, column and box gets 1 to 6 exactly once.",
-    meta: "6×6 · numbers",
-    status: "soon",
+    meta: "4 clue counts",
+    status: "live",
+    href: "#/sudoku",
     mark: <SudokuMark />,
   },
   {
@@ -95,9 +97,15 @@ const GAMES: GameEntry[] = [
 export function Dashboard() {
   const solvedTango = loadGameProgress("tango", `deadly:${todayKey()}`)?.solved === true;
   const solvedQueens = loadGameProgress("queens", `hard:${todayKey()}`)?.solved === true;
+  const solvedZip =
+    loadGameJson<{ solved?: boolean }>("zip", `medium:${todayKey()}`)?.solved === true;
+  const solvedSudoku =
+    loadGameJson<{ solved?: boolean }>("sudoku", `medium:${todayKey()}`)?.solved === true;
   const solvedToday: Record<string, boolean> = {
     tango: solvedTango,
     queens: solvedQueens,
+    zip: solvedZip,
+    sudoku: solvedSudoku,
   };
   const liveCount = GAMES.filter((game) => game.status === "live").length;
   const dateLabel = new Date().toLocaleDateString(undefined, {

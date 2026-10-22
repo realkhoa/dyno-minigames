@@ -1252,6 +1252,197 @@ button {
 }
 
 /* =========================================================
+   Zip
+   ========================================================= */
+
+.zip-board {
+  position: relative;
+  width: min(100%, 430px);
+  aspect-ratio: 1 / 1;
+  margin-inline: auto;
+  border: 2px solid var(--line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel);
+  touch-action: none;
+  user-select: none;
+}
+
+.zip-cells {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  z-index: 1;
+}
+
+.zip-cell {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: transparent;
+  padding: 0;
+  cursor: crosshair;
+}
+
+.zip-cell.is-visited {
+  background: rgba(159, 179, 200, 0.15);
+}
+
+.zip-cell.is-start {
+  box-shadow: inset 0 0 0 1px rgba(200, 164, 92, 0.4);
+}
+
+.zip-cell:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -2px;
+  z-index: 4;
+}
+
+.zip-path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  color: #b3c5da;
+}
+
+.zip-numbers {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.zip-number {
+  align-self: center;
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  width: 62%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #12161d;
+  font-size: clamp(11px, 2vw, 14px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.zip-number.is-done {
+  color: var(--soft);
+}
+
+.zip-number.is-next {
+  color: var(--sun);
+  border-color: rgba(200, 164, 92, 0.5);
+}
+
+/* =========================================================
+   Mini Sudoku
+   ========================================================= */
+
+.sudoku-board {
+  display: grid;
+  gap: 0;
+  width: min(100%, 418px);
+  aspect-ratio: 1 / 1;
+  margin-inline: auto;
+  border: 2px solid var(--line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.sudoku-cell {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: clamp(15px, 3vw, 20px);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.sudoku-cell.box-r {
+  border-right: 2px solid rgba(255, 255, 255, 0.16);
+}
+
+.sudoku-cell.box-b {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.16);
+}
+
+.sudoku-cell.is-given {
+  color: var(--accent-soft);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.sudoku-cell.is-peer {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sudoku-cell.is-same {
+  background: rgba(159, 179, 200, 0.13);
+}
+
+.sudoku-cell.is-conflict {
+  color: #d19aa1;
+}
+
+.sudoku-cell.is-selected {
+  background: rgba(143, 161, 184, 0.16);
+  box-shadow: inset 0 0 0 2px var(--accent);
+  z-index: 2;
+}
+
+.sudoku-cell:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.sudoku-pad {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.sudoku-key {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.sudoku-key:hover {
+  border-color: var(--line-strong);
+  background: #1b2028;
+}
+
+.sudoku-key.is-done {
+  opacity: 0.35;
+}
+
+.sudoku-key.is-erase {
+  color: var(--muted);
+}
+
+/* =========================================================
    Animation + responsive
    ========================================================= */
 

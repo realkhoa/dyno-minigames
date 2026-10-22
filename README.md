@@ -15,8 +15,8 @@ rewrites.
 | --- | --- | --- |
 | **Tango** | live | Balance suns and moons on a 6×6 grid |
 | **Queens** | live | One queen per row, column and colour region |
-| Zip | planned | One path through every cell, numbers in order |
-| Mini Sudoku | planned | 6×6 sudoku with 2×3 boxes |
+| **Zip** | live | One path through every cell, numbers in order |
+| **Mini Sudoku** | live | 6×6 sudoku with 2×3 boxes |
 | Crossclimb | planned | Word ladder with clues |
 | Pinpoint | planned | Five clues, one category |
 | Patches | planned | Rectangles sized by area clues |
@@ -25,6 +25,10 @@ rewrites.
 ![Tango](docs/tango.png)
 
 ![Queens](docs/queens.png)
+
+![Zip](docs/zip.png)
+
+![Mini Sudoku](docs/sudoku.png)
 
 ## Tango
 
@@ -44,13 +48,31 @@ rewrites.
 - Use the **Mark** tool (or right-click) to note cells you have ruled out.
 - Any valid arrangement wins; the header shows how many exist.
 
+## Zip
+
+- Start on **1** and finish on the highest number.
+- Draw one continuous line through **every cell**, each exactly once.
+- Numbers must be reached in ascending order; out-of-order checkpoints are blocked.
+- Drag across cells, or tap them one after another.
+- Tap an earlier cell on the path to undo back to it.
+
+## Mini Sudoku
+
+- A 6×6 grid split into six **2×3 boxes**.
+- Every row, column and box contains the digits 1–6 exactly once.
+- Grey digits are clues and cannot be changed.
+- Tap a cell, then a number; tap the same number again to clear it.
+- Every board is generated with exactly one solution.
+
 ## Controls
 
 | Action | How |
 | --- | --- |
-| Place / cycle | Click or tap a cell |
-| Clear | Right-click, or `0` / `Backspace` |
-| Keyboard | Arrow keys move, `1`/`S` places, `2`/`M` marks |
+| Tango | Click to cycle sun / moon; `1`/`S`, `2`/`M`, `0` clears |
+| Queens | Queen / Mark tool, right-click to mark, `1`/`2`/`0` |
+| Zip | Drag or tap adjoining cells; tap backwards to undo |
+| Sudoku | Select a cell, then a pad number or `1`–`6` |
+| Keyboard | Arrow keys move, `Backspace` clears |
 | Restart | Toolbar button |
 
 Progress and the timer are saved in `localStorage`, per puzzle. Daily puzzles are
@@ -86,9 +108,17 @@ far more than tidy balanced blobs.
 | Hard | 8×8 | 1–6 |
 | **Deadly** | 9×9 | 1–21 |
 
-Generation costs ~3 ms (6×6) to ~65 ms (9×9) per board on a laptop. Engine tests
-live in `scripts/tango.test.ts` and `scripts/queens.test.ts` and run with
-`npm test`.
+**Zip** — grow a random Hamiltonian path with a Warnsdorff-ordered DFS, then
+place checkpoints along it at stratified positions (1 at the start, the highest
+number at the end). Every board ships with a valid full path; the player may draw
+any path that follows the rules.
+
+**Mini Sudoku** — fill a random valid 6×6 grid, then remove clues one at a time
+while a backtracking solver still finds exactly one solution. Difficulty is the
+number of clues kept: 22 / 18 / 14, or fully minimal (9–12) for Deadly.
+
+Generation costs well under 25 ms per board on a laptop; engine tests live in
+`scripts/*.test.ts` and run with `npm test`.
 
 ## Stack
 
@@ -97,17 +127,18 @@ routing keeps GitHub Pages happy. CSS is hand-written; no UI kit.
 
 ```
 src/
-  games/tango/engine.ts      rules, solver, generator, difficulty bands
-  games/tango/TangoGame.tsx  game screen
-  games/queens/engine.ts     placement solver, region growth, generator
-  games/queens/QueensGame.tsx
-  components/GameShell.tsx   shared game chrome (header, help, layout, footer)
-  components/                icons + modal
-  pages/Dashboard.tsx        game shelf
-  lib/                       seeded random, hash router, storage helpers
+  games/tango/engine.ts       rules, solver, generator, difficulty bands
+  games/queens/engine.ts      placement solver, region growth, generator
+  games/zip/engine.ts         Hamiltonian paths, checkpoints, path validation
+  games/sudoku/engine.ts      6x6 solver, clue carving, conflicts
+  games/*/*Game.tsx           one screen per game
+  components/GameShell.tsx    shared game chrome (header, help, layout, footer)
+  components/                 icons + modal
+  pages/Dashboard.tsx         game shelf
+  lib/                        seeded random, hash router, storage helpers
 scripts/
-  tango.test.ts, queens.test.ts   engine checks
-  ui-check.ts                     headless Chrome end-to-end checks
+  tango|queens|zip|sudoku.test.ts   engine checks
+  ui-check.ts                       headless Chrome end-to-end checks
 ```
 
 ## Local development
@@ -141,7 +172,7 @@ user page, or a custom domain without editing the repo name.
 
 ## Roadmap
 
-- Zip, Mini Sudoku, Crossclimb, Pinpoint, Patches, Wend.
+- Crossclimb, Pinpoint, Patches, Wend.
 - Per-game stats and streaks on the dashboard.
 
 ---
@@ -157,3 +188,5 @@ user page, or a custom domain without editing the repo name.
   **Deadly đúng 1 lời giải**; luôn có tối thiểu 3 ô khoá không sửa được.
 - **Queens**: đặt N quân hậu trên bàn N×N, mỗi hàng/cột/vùng màu đúng một quân,
   không quân nào chạm nhau kể cả chéo. Vùng màu là toàn bộ đề bài.
+- **Zip**: một đường liền mạch phủ mọi ô, đi qua các số theo thứ tự tăng dần.
+- **Mini Sudoku**: 6×6, mỗi hàng/cột/hộp 2×3 có đủ 1–6; mỗi đề đúng 1 lời giải.

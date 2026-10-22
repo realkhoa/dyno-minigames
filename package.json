@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types scripts/tango.test.ts && node --experimental-strip-types scripts/queens.test.ts"
+    "test": "node --experimental-strip-types scripts/tango.test.ts && node --experimental-strip-types scripts/queens.test.ts && node --experimental-strip-types scripts/zip.test.ts && node --experimental-strip-types scripts/sudoku.test.ts"
   },
   "dependencies": {
     "react": "^19.3.1",
