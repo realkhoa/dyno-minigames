@@ -1,5 +1,7 @@
 # Dyno MiniGames
 
+**Live:** https://realkhoa.github.io/dyno-minigames/
+
 A tiny shelf of daily logic mini games, served as a static site on GitHub Pages.
 The dashboard is the home screen; each game lives on its own hash route so the
 build works from any repository path without server rewrites.
