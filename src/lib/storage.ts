@@ -1,10 +1,12 @@
 const PREFIX = "dyno:minigames:v1";
 
-export interface TangoProgress {
+export interface GameProgress {
   cells: number[];
   seconds: number;
   solved: boolean;
 }
+
+export type TangoProgress = GameProgress;
 
 function safeStorage(): Storage | null {
   try {
@@ -19,12 +21,12 @@ function safeStorage(): Storage | null {
 
 const store = safeStorage();
 
-export function loadTangoProgress(puzzleId: string): TangoProgress | null {
+export function loadGameProgress(game: string, puzzleId: string): GameProgress | null {
   if (!store) return null;
   try {
-    const raw = store.getItem(`${PREFIX}:tango:${puzzleId}`);
+    const raw = store.getItem(`${PREFIX}:${game}:${puzzleId}`);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<TangoProgress>;
+    const parsed = JSON.parse(raw) as Partial<GameProgress>;
     if (!Array.isArray(parsed.cells) || typeof parsed.seconds !== "number") {
       return null;
     }
@@ -38,22 +40,40 @@ export function loadTangoProgress(puzzleId: string): TangoProgress | null {
   }
 }
 
-export function saveTangoProgress(puzzleId: string, progress: TangoProgress): void {
+export function saveGameProgress(
+  game: string,
+  puzzleId: string,
+  progress: GameProgress,
+): void {
   if (!store) return;
   try {
-    store.setItem(`${PREFIX}:tango:${puzzleId}`, JSON.stringify(progress));
+    store.setItem(`${PREFIX}:${game}:${puzzleId}`, JSON.stringify(progress));
   } catch {
     // Quota or privacy mode: progress just won't persist.
   }
 }
 
-export function clearTangoProgress(puzzleId: string): void {
+export function clearGameProgress(game: string, puzzleId: string): void {
   if (!store) return;
   try {
-    store.removeItem(`${PREFIX}:tango:${puzzleId}`);
+    store.removeItem(`${PREFIX}:${game}:${puzzleId}`);
   } catch {
     // ignore
   }
+}
+
+/* Tango-specific aliases kept for the existing game and dashboard. */
+
+export function loadTangoProgress(puzzleId: string): TangoProgress | null {
+  return loadGameProgress("tango", puzzleId);
+}
+
+export function saveTangoProgress(puzzleId: string, progress: TangoProgress): void {
+  saveGameProgress("tango", puzzleId, progress);
+}
+
+export function clearTangoProgress(puzzleId: string): void {
+  clearGameProgress("tango", puzzleId);
 }
 
 export function formatTime(totalSeconds: number): string {

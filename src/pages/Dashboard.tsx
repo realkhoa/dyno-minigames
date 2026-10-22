@@ -1,7 +1,17 @@
 import type { ReactNode } from "react";
-import { ArrowLeftIcon, CrossclimbMark, PinpointMark, QueensMark, TangoMark } from "../components/icons";
+import {
+  ArrowLeftIcon,
+  CrossclimbMark,
+  PatchesMark,
+  PinpointMark,
+  QueensMark,
+  SudokuMark,
+  TangoMark,
+  WendMark,
+  ZipMark,
+} from "../components/icons";
 import { todayKey } from "../games/tango/engine";
-import { loadTangoProgress } from "../lib/storage";
+import { loadGameProgress } from "../lib/storage";
 
 interface GameEntry {
   id: string;
@@ -9,6 +19,7 @@ interface GameEntry {
   blurb: string;
   meta: string;
   status: "live" | "soon";
+  href?: string;
   mark: ReactNode;
 }
 
@@ -19,15 +30,41 @@ const GAMES: GameEntry[] = [
     blurb: "Balance suns and moons. Fill the grid without tripling up a line.",
     meta: "6×6 · 4 difficulties",
     status: "live",
+    href: "#/tango",
     mark: <TangoMark />,
   },
   {
     id: "queens",
     name: "Queens",
-    blurb: "One crown per row, column and colour region. No two may touch.",
-    meta: "Grid logic",
-    status: "soon",
+    blurb: "One queen per row, column and colour region. No two may touch.",
+    meta: "4 board sizes",
+    status: "live",
+    href: "#/queens",
     mark: <QueensMark />,
+  },
+  {
+    id: "zip",
+    name: "Zip",
+    blurb: "Draw one path through every cell, hitting the numbers in order.",
+    meta: "Path puzzle",
+    status: "soon",
+    mark: <ZipMark />,
+  },
+  {
+    id: "sudoku",
+    name: "Mini Sudoku",
+    blurb: "A 6×6 sudoku: every row, column and box gets 1 to 6 exactly once.",
+    meta: "6×6 · numbers",
+    status: "soon",
+    mark: <SudokuMark />,
+  },
+  {
+    id: "crossclimb",
+    name: "Crossclimb",
+    blurb: "Climb a ladder of words, one letter at a time, guided by clues.",
+    meta: "Word ladder",
+    status: "soon",
+    mark: <CrossclimbMark />,
   },
   {
     id: "pinpoint",
@@ -38,17 +75,31 @@ const GAMES: GameEntry[] = [
     mark: <PinpointMark />,
   },
   {
-    id: "crossclimb",
-    name: "Crossclimb",
-    blurb: "Climb a word ladder from the first clue to the last rung.",
-    meta: "Word ladder",
+    id: "patches",
+    name: "Patches",
+    blurb: "Split the grid into rectangles whose areas match the numbers.",
+    meta: "Spatial puzzle",
     status: "soon",
-    mark: <CrossclimbMark />,
+    mark: <PatchesMark />,
+  },
+  {
+    id: "wend",
+    name: "Wend",
+    blurb: "Trace winding words through every letter on the board.",
+    meta: "Word paths",
+    status: "soon",
+    mark: <WendMark />,
   },
 ];
 
 export function Dashboard() {
-  const solvedToday = loadTangoProgress(`deadly:${todayKey()}`)?.solved === true;
+  const solvedTango = loadGameProgress("tango", `deadly:${todayKey()}`)?.solved === true;
+  const solvedQueens = loadGameProgress("queens", `hard:${todayKey()}`)?.solved === true;
+  const solvedToday: Record<string, boolean> = {
+    tango: solvedTango,
+    queens: solvedQueens,
+  };
+  const liveCount = GAMES.filter((game) => game.status === "live").length;
   const dateLabel = new Date().toLocaleDateString(undefined, {
     weekday: "long",
     month: "short",
@@ -78,14 +129,15 @@ export function Dashboard() {
         <section className="hero">
           <h1 id="games-title">Games</h1>
           <p className="hero-lede">
-            Small daily logic puzzles. Tango is live; a few more are on the way. Everything runs in
-            the browser — no account, no backend.
+            Daily logic puzzles in the LinkedIn style. Tango and Queens are live; the rest of the
+            shelf is on the way. Everything runs in the browser — no account, no backend.
           </p>
           <div className="hero-stats">
             <span className="pill-chip">
-              <span className="live-dot" aria-hidden="true" />1 playable
+              <span className="live-dot" aria-hidden="true" />
+              {liveCount} playable
             </span>
-            <span className="pill-chip">3 planned</span>
+            <span className="pill-chip">{GAMES.length - liveCount} planned</span>
             <span className="pill-chip">Progress saved locally</span>
           </div>
         </section>
@@ -97,7 +149,7 @@ export function Dashboard() {
                 <a
                   className="game-card is-live"
                   data-game={game.id}
-                  href="#/tango"
+                  href={game.href}
                   key={game.id}
                 >
                   <span className="game-icon" aria-hidden="true">
@@ -107,7 +159,7 @@ export function Dashboard() {
                     <div className="game-title-row">
                       <h3 className="game-name">{game.name}</h3>
                       <span className="tag live">
-                        {solvedToday ? "Solved today" : "Play"}
+                        {solvedToday[game.id] ? "Solved today" : "Play"}
                       </span>
                     </div>
                     <p className="game-blurb">{game.blurb}</p>

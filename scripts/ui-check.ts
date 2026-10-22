@@ -9,6 +9,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { generatePuzzle, todayKey } from "../src/games/tango/engine.ts";
+import { generatePuzzle as generateQueens } from "../src/games/queens/engine.ts";
 
 const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const PORT = 9333;
@@ -322,13 +323,82 @@ try {
 
   // Dashboard and saved daily state.
   await cdp.evaluate<void>("location.hash = '#/'");
-  await waitFor(cdp, "document.querySelectorAll('.game-card').length === 4", "the dashboard", 5000);
+  await waitFor(cdp, "document.querySelectorAll('.game-card').length === 8", "the dashboard", 5000);
   const cards = await cdp.evaluate<number>("document.querySelectorAll('.game-card').length");
   const solvedTag = await cdp.evaluate<boolean>(
     "[...document.querySelectorAll('.tag')].some(t => /solved/i.test(t.textContent || ''))",
   );
-  check("dashboard lists every game", cards === 4, `${cards} cards`);
+  check("dashboard lists every game", cards === 8, `${cards} cards`);
   check("dashboard reflects today's solve", solvedTag);
+
+  /* ---------------- Queens ---------------- */
+
+  await cdp.evaluate<void>("location.hash = '#/queens'");
+  await waitFor(
+    cdp,
+    "document.querySelectorAll('.queens-cell').length === 64",
+    "the Queens board",
+    6000,
+  );
+  check("queens board renders 8x8", true, "64 cells");
+
+  await cdp.evaluate<void>("document.querySelectorAll('.queens-cell')[0].click()");
+  await sleep(120);
+  const queenPlaced = await cdp.evaluate<boolean>(
+    "!!document.querySelectorAll('.queens-cell')[0].querySelector('svg')",
+  );
+  check("click places a queen", queenPlaced);
+
+  await cdp.evaluate<void>(
+    "[...document.querySelectorAll('.tool-toggle button')].find((b) => b.textContent?.includes('Mark'))?.click()",
+  );
+  await cdp.evaluate<void>("document.querySelectorAll('.queens-cell')[1].click()");
+  await sleep(120);
+  const markPlaced = await cdp.evaluate<boolean>(
+    "document.querySelectorAll('.queens-cell')[1].querySelectorAll('svg').length === 1",
+  );
+  check("mark tool adds a note", markPlaced);
+
+  await cdp.evaluate<void>(
+    "[...document.querySelectorAll('button')].find((b) => b.textContent === 'Restart')?.click()",
+  );
+  await sleep(150);
+  const clearedQueens = await cdp.evaluate<number>(
+    "document.querySelectorAll('.queens-cell svg').length",
+  );
+  check("queens restart clears the board", clearedQueens === 0, `${clearedQueens} icons`);
+
+  // Practice sizes change the board.
+  await clickByText(".segmented button", "Practice");
+  await sleep(350);
+  await clickByText(".chip", "Easy");
+  await sleep(450);
+  const easyCells = await cdp.evaluate<number>("document.querySelectorAll('.queens-cell').length");
+  check("queens easy is a 6x6 board", easyCells === 36, `${easyCells} cells`);
+
+  await clickByText(".segmented button", "Daily");
+  await sleep(400);
+
+  const queensPuzzle = generateQueens(todayKey(), "hard");
+  await cdp.evaluate<void>(
+    "[...document.querySelectorAll('.tool-toggle button')].find((b) => b.textContent?.includes('Queen'))?.click()",
+  );
+  await cdp.evaluate(
+    `(async () => {
+      const solution = ${JSON.stringify(queensPuzzle.solution)};
+      const size = ${queensPuzzle.size};
+      const cells = [...document.querySelectorAll('.queens-cell')];
+      for (let row = 0; row < size; row++) {
+        cells[row * size + solution[row]].click();
+        await new Promise((r) => setTimeout(r, 14));
+      }
+    })()`,
+  );
+  await waitFor(cdp, "!!document.querySelector('.modal-card.is-win')", "the Queens win dialog", 6000);
+  const queensWin = await cdp.evaluate<string>(
+    "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
+  );
+  check("queens solve opens the win dialog", queensWin.length > 0, queensWin);
 
   check("no page exceptions", cdp.errors.length === 0, cdp.errors.slice(0, 2).join(" | "));
 } catch (error) {

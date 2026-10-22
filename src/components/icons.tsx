@@ -113,6 +113,94 @@ export function ArrowLeftIcon({ className }: IconProps) {
   );
 }
 
+export function CrownIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M3.6 18.4 2.2 8.1l6.1 4.1L12 5l3.7 7.2 6.1-4.1-1.4 10.3H3.6Z"
+        fill="currentColor"
+      />
+      <rect x="4.2" y="19.4" width="15.6" height="1.6" rx="0.8" fill="currentColor" opacity="0.7" />
+    </svg>
+  );
+}
+
+export function MarkIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="m7 7 10 10M17 7 7 17"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+export function ZipMark() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+      <path
+        d="M10 38V28h10V18h9v10h9"
+        stroke="#8fb0ff"
+        strokeWidth="2.4"
+        strokeLinejoin="round"
+      />
+      <circle cx="10" cy="38" r="3.4" fill="#8fb0ff" />
+      <circle cx="38" cy="28" r="3.4" fill="#8fb0ff" />
+      <circle cx="19" cy="18" r="2.4" fill="#8fb0ff" opacity="0.7" />
+    </svg>
+  );
+}
+
+export function SudokuMark() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+      <rect x="9" y="12" width="30" height="24" rx="2.5" stroke="#c9b6ff" strokeWidth="2.2" />
+      <path d="M19 12v24M29 12v24M9 20h30M9 28h30" stroke="#c9b6ff" strokeWidth="1.6" opacity="0.75" />
+    </svg>
+  );
+}
+
+export function PatchesMark() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+      <rect x="9" y="9" width="14" height="14" rx="2.5" stroke="#e0b48a" strokeWidth="2.2" />
+      <rect x="25" y="9" width="14" height="9" rx="2.5" stroke="#e0b48a" strokeWidth="2.2" />
+      <rect x="9" y="25" width="9" height="14" rx="2.5" stroke="#e0b48a" strokeWidth="2.2" />
+      <rect x="20" y="20" width="19" height="19" rx="2.5" stroke="#e0b48a" strokeWidth="2.2" />
+    </svg>
+  );
+}
+
+export function WendMark() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+      <path
+        d="M11 33c7 0 5-14 12-14s5 8 11 8 5-6 5-6"
+        stroke="#9fd8c4"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      <circle cx="11" cy="33" r="3" fill="#9fd8c4" />
+      <circle cx="23" cy="19" r="3" fill="#9fd8c4" />
+      <circle cx="39" cy="21" r="3" fill="#9fd8c4" />
+    </svg>
+  );
+}
+
 export function TangoMark() {
   return (
     <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
