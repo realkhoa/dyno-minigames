@@ -17,9 +17,9 @@ rewrites.
 | **Queens** | live | One queen per row, column and colour region |
 | **Zip** | live | One path through every cell, numbers in order |
 | **Mini Sudoku** | live | 6×6 sudoku with 2×3 boxes |
+| **Patches** | live | Rectangles sized by area clues |
 | Crossclimb | planned | Word ladder with clues |
 | Pinpoint | planned | Five clues, one category |
-| Patches | planned | Rectangles sized by area clues |
 | Wend | planned | Winding word paths covering every letter |
 
 ![Tango](docs/tango.png)
@@ -29,6 +29,8 @@ rewrites.
 ![Zip](docs/zip.png)
 
 ![Mini Sudoku](docs/sudoku.png)
+
+![Patches](docs/patches.png)
 
 ## Tango
 
@@ -64,6 +66,15 @@ rewrites.
 - Tap a cell, then a number; tap the same number again to clear it.
 - Every board is generated with exactly one solution.
 
+## Patches
+
+- Divide the whole grid into rectangles (squares count too).
+- Each rectangle holds **exactly one clue**.
+- The clue number is the **area** of its rectangle.
+- No overlaps and no uncovered cells.
+- Drag corner to corner, or tap two opposite corners; tap a patch to remove it.
+- Any complete, valid partition wins.
+
 ## Controls
 
 | Action | How |
@@ -72,6 +83,7 @@ rewrites.
 | Queens | Queen / Mark tool, right-click to mark, `1`/`2`/`0` |
 | Zip | Drag or tap adjoining cells; tap backwards to undo |
 | Sudoku | Select a cell, then a pad number or `1`–`6` |
+| Patches | Drag or tap two opposite corners; tap a patch to remove |
 | Keyboard | Arrow keys move, `Backspace` clears |
 | Restart | Toolbar button |
 
@@ -117,6 +129,11 @@ any path that follows the rules.
 while a backtracking solver still finds exactly one solution. Difficulty is the
 number of clues kept: 22 / 18 / 14, or fully minimal (9–12) for Deadly.
 
+**Patches** — start from the full board and recursively cut a rectangle into two
+until the target patch count is reached, then drop an area clue in each patch.
+The generated tiling guarantees a solvable board; players may commit any valid
+partition.
+
 Generation costs well under 25 ms per board on a laptop; engine tests live in
 `scripts/*.test.ts` and run with `npm test`.
 
@@ -131,14 +148,15 @@ src/
   games/queens/engine.ts      placement solver, region growth, generator
   games/zip/engine.ts         Hamiltonian paths, checkpoints, path validation
   games/sudoku/engine.ts      6x6 solver, clue carving, conflicts
+  games/patches/engine.ts     rectangle tiling, clue placement, rect helpers
   games/*/*Game.tsx           one screen per game
   components/GameShell.tsx    shared game chrome (header, help, layout, footer)
   components/                 icons + modal
   pages/Dashboard.tsx         game shelf
   lib/                        seeded random, hash router, storage helpers
 scripts/
-  tango|queens|zip|sudoku.test.ts   engine checks
-  ui-check.ts                       headless Chrome end-to-end checks
+  tango|queens|zip|sudoku|patches.test.ts   engine checks
+  ui-check.ts                               headless Chrome end-to-end checks
 ```
 
 ## Local development
@@ -172,7 +190,7 @@ user page, or a custom domain without editing the repo name.
 
 ## Roadmap
 
-- Crossclimb, Pinpoint, Patches, Wend.
+- Crossclimb, Pinpoint, Wend (word games).
 - Per-game stats and streaks on the dashboard.
 
 ---
@@ -190,3 +208,5 @@ user page, or a custom domain without editing the repo name.
   không quân nào chạm nhau kể cả chéo. Vùng màu là toàn bộ đề bài.
 - **Zip**: một đường liền mạch phủ mọi ô, đi qua các số theo thứ tự tăng dần.
 - **Mini Sudoku**: 6×6, mỗi hàng/cột/hộp 2×3 có đủ 1–6; mỗi đề đúng 1 lời giải.
+- **Patches**: chia bàn thành các hình chữ nhật, mỗi hình chứa đúng 1 số và số đó
+  là diện tích của hình; không chồng lấn, không sót ô.

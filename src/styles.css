@@ -1443,6 +1443,84 @@ button {
 }
 
 /* =========================================================
+   Patches
+   ========================================================= */
+
+.patches-board {
+  position: relative;
+  width: min(100%, 430px);
+  aspect-ratio: 1 / 1;
+  margin-inline: auto;
+  border: 2px solid var(--line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel);
+  touch-action: none;
+  user-select: none;
+}
+
+.patches-cells {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  z-index: 1;
+}
+
+.patches-cell {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: transparent;
+  padding: 0;
+  cursor: crosshair;
+}
+
+.patches-cell:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.patches-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.patch {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.34);
+}
+
+.patch-preview {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px dashed var(--accent-soft);
+  background: rgba(143, 161, 184, 0.12);
+}
+
+.patches-numbers {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.patch-number {
+  display: grid;
+  place-items: center;
+  font-size: clamp(12px, 2.2vw, 16px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.patch-number.is-used {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+/* =========================================================
    Animation + responsive
    ========================================================= */
 

@@ -12,6 +12,7 @@ import { generatePuzzle, todayKey } from "../src/games/tango/engine.ts";
 import { generatePuzzle as generateQueens } from "../src/games/queens/engine.ts";
 import { generatePuzzle as generateZip } from "../src/games/zip/engine.ts";
 import { generatePuzzle as generateSudoku } from "../src/games/sudoku/engine.ts";
+import { generatePuzzle as generatePatches } from "../src/games/patches/engine.ts";
 
 const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const PORT = 9333;
@@ -508,6 +509,72 @@ try {
     "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
   );
   check("sudoku solve opens the win dialog", sudokuWin.length > 0, sudokuWin);
+
+  /* ---------------- Patches ---------------- */
+
+  await cdp.evaluate<void>("location.hash = '#/patches'");
+  await waitFor(
+    cdp,
+    "document.querySelectorAll('.patches-cell').length === 49",
+    "the Patches board",
+    6000,
+  );
+  const patchPuzzle = generatePatches(todayKey(), "medium");
+  const patchSize = patchPuzzle.size;
+
+  // A whole-board selection holds many clues, so it must be rejected.
+  await cdp.evaluate<void>(
+    `document.querySelectorAll('.patches-cell')[0].click()`,
+  );
+  await sleep(80);
+  await cdp.evaluate<void>(
+    `document.querySelectorAll('.patches-cell')[${patchSize * patchSize - 1}].click()`,
+  );
+  await sleep(150);
+  const rejected = await cdp.evaluate<number>("document.querySelectorAll('.patch').length");
+  const warn = await cdp.evaluate<boolean>("!!document.querySelector('.board-status.is-warn')");
+  check("patches rejects an invalid rectangle", rejected === 0 && warn);
+
+  const first = patchPuzzle.solution[0];
+  await cdp.evaluate<void>(`document.querySelectorAll('.patches-cell')[${first.y * patchSize + first.x}].click()`);
+  await sleep(60);
+  await cdp.evaluate<void>(
+    `document.querySelectorAll('.patches-cell')[${
+      (first.y + first.h - 1) * patchSize + first.x + first.w - 1
+    }].click()`,
+  );
+  await sleep(150);
+  const placed = await cdp.evaluate<number>("document.querySelectorAll('.patch').length");
+  check("patches places a valid rectangle", placed === 1, `${placed} patches`);
+
+  await cdp.evaluate<void>(
+    `document.querySelectorAll('.patches-cell')[${first.y * patchSize + first.x}].click()`,
+  );
+  await sleep(150);
+  const removed = await cdp.evaluate<number>("document.querySelectorAll('.patch').length");
+  check("patches removes a patch on tap", removed === 0, `${removed} patches`);
+
+  await cdp.evaluate(
+    `(async () => {
+      const rects = ${JSON.stringify(patchPuzzle.solution)};
+      const size = ${patchSize};
+      const cells = [...document.querySelectorAll('.patches-cell')];
+      const tap = async (cell) => {
+        cells[cell].click();
+        await new Promise((r) => setTimeout(r, 18));
+      };
+      for (const rect of rects) {
+        await tap(rect.y * size + rect.x);
+        await tap((rect.y + rect.h - 1) * size + rect.x + rect.w - 1);
+      }
+    })()`,
+  );
+
+  await waitFor(cdp, "!!document.querySelector('.modal-card.is-win')", "the Patches win dialog", 8000);
+  const patchesWin = await cdp.evaluate<string>(
+    "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
+  );
+  check("patches tiling solves the board", patchesWin.length > 0, patchesWin);
 
   check("no page exceptions", cdp.errors.length === 0, cdp.errors.slice(0, 2).join(" | "));
 } catch (error) {

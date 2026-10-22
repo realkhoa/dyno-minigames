@@ -80,8 +80,9 @@ const GAMES: GameEntry[] = [
     id: "patches",
     name: "Patches",
     blurb: "Split the grid into rectangles whose areas match the numbers.",
-    meta: "Spatial puzzle",
-    status: "soon",
+    meta: "4 board sizes",
+    status: "live",
+    href: "#/patches",
     mark: <PatchesMark />,
   },
   {
@@ -101,11 +102,14 @@ export function Dashboard() {
     loadGameJson<{ solved?: boolean }>("zip", `medium:${todayKey()}`)?.solved === true;
   const solvedSudoku =
     loadGameJson<{ solved?: boolean }>("sudoku", `medium:${todayKey()}`)?.solved === true;
+  const solvedPatches =
+    loadGameJson<{ solved?: boolean }>("patches", `medium:${todayKey()}`)?.solved === true;
   const solvedToday: Record<string, boolean> = {
     tango: solvedTango,
     queens: solvedQueens,
     zip: solvedZip,
     sudoku: solvedSudoku,
+    patches: solvedPatches,
   };
   const liveCount = GAMES.filter((game) => game.status === "live").length;
   const dateLabel = new Date().toLocaleDateString(undefined, {

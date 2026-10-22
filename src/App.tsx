@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { PatchesGame } from "./games/patches/PatchesGame";
 import { QueensGame } from "./games/queens/QueensGame";
 import { SudokuGame } from "./games/sudoku/SudokuGame";
 import { TangoGame } from "./games/tango/TangoGame";
@@ -22,6 +23,8 @@ export default function App() {
       return <ZipGame />;
     case "sudoku":
       return <SudokuGame />;
+    case "patches":
+      return <PatchesGame />;
     default:
       return <Dashboard />;
   }
