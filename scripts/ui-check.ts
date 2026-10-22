@@ -15,6 +15,7 @@ import { generatePuzzle as generateSudoku } from "../src/games/sudoku/engine.ts"
 import { generatePuzzle as generatePatches } from "../src/games/patches/engine.ts";
 import { puzzleForSeed } from "../src/games/crossclimb/engine.ts";
 import { categoryForSeed } from "../src/games/pinpoint/engine.ts";
+import { generatePuzzle as generateWend } from "../src/games/wend/engine.ts";
 
 const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const PORT = 9333;
@@ -657,6 +658,68 @@ try {
     "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
   );
   check("pinpoint accepts the category", pinpointWin.length > 0, pinpointWin);
+
+  /* ---------------- Wend ---------------- */
+
+  await cdp.evaluate<void>("location.hash = '#/wend'");
+  await waitFor(
+    cdp,
+    "document.querySelectorAll('.wend-cell').length === 36",
+    "the Wend board",
+    6000,
+  );
+  const wendPuzzle = generateWend(todayKey(), "medium");
+
+  const dragWord = async (cells: number[]) => {
+    const points = await cdp!.evaluate<Array<{ x: number; y: number }>>(
+      `(${JSON.stringify(cells)}).map((i) => {
+        const rect = document.querySelectorAll('.wend-cell')[i].getBoundingClientRect();
+        return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+      })`,
+    );
+    await cdp!.send("Input.dispatchMouseEvent", {
+      type: "mousePressed",
+      x: points[0].x,
+      y: points[0].y,
+      button: "left",
+      clickCount: 1,
+    });
+    for (const point of points.slice(1)) {
+      await cdp!.send("Input.dispatchMouseEvent", {
+        type: "mouseMoved",
+        x: point.x,
+        y: point.y,
+        button: "left",
+        buttons: 1,
+      });
+      await sleep(18);
+    }
+    const last = points[points.length - 1];
+    await cdp!.send("Input.dispatchMouseEvent", {
+      type: "mouseReleased",
+      x: last.x,
+      y: last.y,
+      button: "left",
+      clickCount: 1,
+    });
+    await sleep(180);
+  };
+
+  await dragWord(wendPuzzle.solution[0].cells);
+  const firstWord = await cdp.evaluate<number>(
+    "document.querySelectorAll('.wend-slot.is-filled').length",
+  );
+  check("wend accepts a traced word", firstWord === 1, `${firstWord} words`);
+
+  for (const entry of wendPuzzle.solution.slice(1)) {
+    await dragWord(entry.cells);
+  }
+
+  await waitFor(cdp, "!!document.querySelector('.modal-card.is-win')", "the Wend win dialog", 8000);
+  const wendWin = await cdp.evaluate<string>(
+    "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
+  );
+  check("wend completes the board", wendWin.length > 0, wendWin);
 
   check("no page exceptions", cdp.errors.length === 0, cdp.errors.slice(0, 2).join(" | "));
 } catch (error) {

@@ -91,8 +91,9 @@ const GAMES: GameEntry[] = [
     id: "wend",
     name: "Wend",
     blurb: "Trace winding words through every letter on the board.",
-    meta: "Word paths",
-    status: "soon",
+    meta: "4 board sizes",
+    status: "live",
+    href: "#/wend",
     mark: <WendMark />,
   },
 ];
@@ -110,6 +111,8 @@ export function Dashboard() {
     loadGameJson<{ solved?: boolean }>("crossclimb", `daily:${todayKey()}`)?.solved === true;
   const solvedPinpoint =
     loadGameJson<{ solved?: boolean }>("pinpoint", `daily:${todayKey()}`)?.solved === true;
+  const solvedWend =
+    loadGameJson<{ solved?: boolean }>("wend", `medium:${todayKey()}`)?.solved === true;
   const solvedToday: Record<string, boolean> = {
     tango: solvedTango,
     queens: solvedQueens,
@@ -118,6 +121,7 @@ export function Dashboard() {
     patches: solvedPatches,
     crossclimb: solvedCrossclimb,
     pinpoint: solvedPinpoint,
+    wend: solvedWend,
   };
   const liveCount = GAMES.filter((game) => game.status === "live").length;
   const dateLabel = new Date().toLocaleDateString(undefined, {
@@ -149,15 +153,15 @@ export function Dashboard() {
         <section className="hero">
           <h1 id="games-title">Games</h1>
           <p className="hero-lede">
-            Daily logic puzzles in the LinkedIn style. Tango and Queens are live; the rest of the
-            shelf is on the way. Everything runs in the browser — no account, no backend.
+            Eight daily puzzles in the LinkedIn style: logic grids, path drawing and word games.
+            Everything runs in the browser — no account, no backend.
           </p>
           <div className="hero-stats">
             <span className="pill-chip">
               <span className="live-dot" aria-hidden="true" />
               {liveCount} playable
             </span>
-            <span className="pill-chip">{GAMES.length - liveCount} planned</span>
+            <span className="pill-chip">All live</span>
             <span className="pill-chip">Progress saved locally</span>
           </div>
         </section>

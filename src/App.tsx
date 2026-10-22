@@ -6,6 +6,7 @@ import { QueensGame } from "./games/queens/QueensGame";
 import { SudokuGame } from "./games/sudoku/SudokuGame";
 import { TangoGame } from "./games/tango/TangoGame";
 import { ZipGame } from "./games/zip/ZipGame";
+import { WendGame } from "./games/wend/WendGame";
 import { useHashRoute } from "./lib/router";
 import { Dashboard } from "./pages/Dashboard";
 
@@ -31,6 +32,8 @@ export default function App() {
       return <CrossclimbGame />;
     case "pinpoint":
       return <PinpointGame />;
+    case "wend":
+      return <WendGame />;
     default:
       return <Dashboard />;
   }

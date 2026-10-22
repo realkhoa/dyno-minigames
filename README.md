@@ -2,25 +2,25 @@
 
 **Live:** https://realkhoa.github.io/dyno-minigames/
 
-A tiny shelf of daily logic mini games in the LinkedIn style, served as a static
-site on GitHub Pages. The dashboard is the home screen; each game lives on its
-own hash route so the build works from any repository path without server
-rewrites.
+All eight LinkedIn-style daily puzzles in one quiet dashboard: Tango, Queens,
+Zip, Mini Sudoku, Patches, Crossclimb, Pinpoint and Wend. Static site, no backend,
+no accounts — every board is generated or curated locally and progress stays in
+the browser.
 
 ![Dashboard](docs/dashboard.png)
 
 ## Games
 
-| Game | Status | Idea |
+| Game | Idea | Board |
 | --- | --- | --- |
-| **Tango** | live | Balance suns and moons on a 6×6 grid |
-| **Queens** | live | One queen per row, column and colour region |
-| **Zip** | live | One path through every cell, numbers in order |
-| **Mini Sudoku** | live | 6×6 sudoku with 2×3 boxes |
-| **Patches** | live | Rectangles sized by area clues |
-| Crossclimb | planned | Word ladder with clues |
-| Pinpoint | planned | Five clues, one category |
-| Wend | planned | Winding word paths covering every letter |
+| **Tango** | Balance suns and moons | 6×6, seeded generator |
+| **Queens** | One queen per row, column and colour region | 6×6 – 9×9 |
+| **Zip** | One path through every cell, numbers in order | 5×5 – 7×7 |
+| **Mini Sudoku** | 6×6 sudoku with 2×3 boxes | 6×6, unique solution |
+| **Patches** | Rectangles sized by area clues | 6×6 – 8×8 |
+| **Crossclimb** | Word ladder, one letter per rung | 16 ladders |
+| **Pinpoint** | Five clues, one category | 32 categories |
+| **Wend** | Tracing words that use every letter | 5×5 – 7×7 |
 
 ![Tango](docs/tango.png)
 
@@ -32,48 +32,43 @@ rewrites.
 
 ![Patches](docs/patches.png)
 
-## Tango
+![Crossclimb](docs/crossclimb.png)
 
-- Fill every cell with a **sun** or a **moon**.
-- Every row and column holds exactly **three suns and three moons**.
-- Never three identical symbols in a row or column.
-- `=` links force two neighbours to match; `×` links force them to differ.
-- Cells with a lock are **fixed clues** and cannot be edited.
-- Any grid that satisfies all rules wins.
+![Pinpoint](docs/pinpoint.png)
 
-## Queens
+![Wend](docs/wend.png)
 
-- Place exactly *N* queens on an *N*×*N* board.
-- One queen per row, per column, and per coloured region.
-- Queens may never touch — not even diagonally.
-- There are no pre-filled clues: the region map is the whole puzzle.
-- Use the **Mark** tool (or right-click) to note cells you have ruled out.
-- Any valid arrangement wins; the header shows how many exist.
+## Rules
 
-## Zip
+**Tango** — fill every cell with a sun or moon. Each row and column holds three
+of each, no three identical symbols may touch in a line, `=` links must match and
+`×` links must differ. Cells with a lock are fixed clues.
 
-- Start on **1** and finish on the highest number.
-- Draw one continuous line through **every cell**, each exactly once.
-- Numbers must be reached in ascending order; out-of-order checkpoints are blocked.
-- Drag across cells, or tap them one after another.
-- Tap an earlier cell on the path to undo back to it.
+**Queens** — place exactly *N* queens on an *N*×*N* board: one per row, column and
+coloured region, and no two may touch, not even diagonally. The region map is the
+whole puzzle. Marks are notes for cells you have ruled out.
 
-## Mini Sudoku
+**Zip** — draw one continuous line through every cell, starting on 1, ending on
+the highest number and hitting the checkpoints in ascending order. Drag across
+cells, or tap them one at a time; tap back along the path to undo.
 
-- A 6×6 grid split into six **2×3 boxes**.
-- Every row, column and box contains the digits 1–6 exactly once.
-- Grey digits are clues and cannot be changed.
-- Tap a cell, then a number; tap the same number again to clear it.
-- Every board is generated with exactly one solution.
+**Mini Sudoku** — every row, column and 2×3 box holds 1–6 exactly once. Grey
+digits are clues. Select a cell, then tap a number; tap it again to clear.
 
-## Patches
+**Patches** — split the grid into rectangles. Each rectangle holds exactly one
+clue, and that number is its area. No overlaps, no uncovered cells. Drag corner
+to corner or tap two opposite corners; tap a patch to remove it.
 
-- Divide the whole grid into rectangles (squares count too).
-- Each rectangle holds **exactly one clue**.
-- The clue number is the **area** of its rectangle.
-- No overlaps and no uncovered cells.
-- Drag corner to corner, or tap two opposite corners; tap a patch to remove it.
-- Any complete, valid partition wins.
+**Crossclimb** — a five-rung word ladder. The top and bottom words are given;
+fill the three middle rungs from their clues. Each rung changes exactly one
+letter from its neighbour.
+
+**Pinpoint** — five clues share one hidden category. Reveal clues one at a time,
+then name the category. Case, punctuation and plurals are ignored.
+
+**Wend** — trace hidden words through orthogonally adjacent letters. Every letter
+belongs to exactly one word, and the lengths of the hidden words are shown under
+the board. Any valid dictionary word of the right length is accepted.
 
 ## Controls
 
@@ -81,61 +76,39 @@ rewrites.
 | --- | --- |
 | Tango | Click to cycle sun / moon; `1`/`S`, `2`/`M`, `0` clears |
 | Queens | Queen / Mark tool, right-click to mark, `1`/`2`/`0` |
-| Zip | Drag or tap adjoining cells; tap backwards to undo |
+| Zip / Wend | Drag or tap adjoining cells; tap backwards to undo |
 | Sudoku | Select a cell, then a pad number or `1`–`6` |
-| Patches | Drag or tap two opposite corners; tap a patch to remove |
+| Patches | Drag or tap two opposite corners |
+| Crossclimb | Type the rung, `Enter` jumps to the next one |
 | Keyboard | Arrow keys move, `Backspace` clears |
-| Restart | Toolbar button |
 
-Progress and the timer are saved in `localStorage`, per puzzle. Daily puzzles are
-keyed by the local date; practice puzzles get a random seed and a fresh board.
+Progress and timers are saved in `localStorage` per puzzle. Daily puzzles are
+keyed by the local date; practice boards get a random seed.
 
-## Puzzle generation
+## Generation
 
-Every board is generated in the browser from a deterministic seed
-(`mulberry32` + string hash), so a daily puzzle is identical for everyone with no
-backend, and any seed reproduces the same board.
+Every board comes from a deterministic seed (`mulberry32` + string hash), so a
+daily puzzle is identical for everyone with no backend.
 
-**Tango** — build a valid full grid, attach `=` / `×` links, then remove clues
-one at a time while the number of completions stays inside the difficulty band.
-The final count is verified with a backtracking solver, and the stored solution
-always exists, so a puzzle can never be unsolvable.
+- **Tango** — build a valid grid, attach `=`/`×` links, then remove clues while
+  the number of completions stays inside a difficulty band. Deadly keeps exactly
+  one solution; every puzzle keeps at least three locked clues.
+- **Queens** — place a random legal queen set, grow one connected region per
+  queen, and keep the tightest of ~180 candidate partitions. 6×6 boards come out
+  unique; larger boards keep a handful of solutions and accept any valid one.
+- **Zip** — random Hamiltonian path (Warnsdorff DFS), then checkpoints at
+  stratified positions along it.
+- **Mini Sudoku** — fill a 6×6 grid, then remove clues while the solver still
+  finds exactly one solution.
+- **Patches** — recursively cut the board into rectangles, then place an area
+  clue in each patch.
+- **Wend** — cut a Hamiltonian path into words of the target lengths and fill
+  each segment from the bundled word list (4–8 letters).
+- **Crossclimb** and **Pinpoint** use curated content: 16 ladders and 32
+  categories, validated by tests.
 
-| Difficulty | Solutions | Links |
-| --- | --- | --- |
-| Easy | 6–14 | ~3 |
-| Medium | 4–5 | ~5 |
-| Hard | 2–3 | ~7 |
-| **Deadly** | **exactly 1** | ~9 |
-
-**Queens** — place a random legal queen set, grow one connected region per queen
-by random expansion, then keep the tightest board found across ~180 attempts
-(early exit on a unique solution). Random, crooked regions constrain the solver
-far more than tidy balanced blobs.
-
-| Difficulty | Board | Typical solutions |
-| --- | --- | --- |
-| Easy | 6×6 | 1 (always unique in testing) |
-| Medium | 7×7 | 1–3 |
-| Hard | 8×8 | 1–6 |
-| **Deadly** | 9×9 | 1–21 |
-
-**Zip** — grow a random Hamiltonian path with a Warnsdorff-ordered DFS, then
-place checkpoints along it at stratified positions (1 at the start, the highest
-number at the end). Every board ships with a valid full path; the player may draw
-any path that follows the rules.
-
-**Mini Sudoku** — fill a random valid 6×6 grid, then remove clues one at a time
-while a backtracking solver still finds exactly one solution. Difficulty is the
-number of clues kept: 22 / 18 / 14, or fully minimal (9–12) for Deadly.
-
-**Patches** — start from the full board and recursively cut a rectangle into two
-until the target patch count is reached, then drop an area clue in each patch.
-The generated tiling guarantees a solvable board; players may commit any valid
-partition.
-
-Generation costs well under 25 ms per board on a laptop; engine tests live in
-`scripts/*.test.ts` and run with `npm test`.
+Generation costs a few milliseconds per board (Queens 9×9 is the slowest at
+~65 ms).
 
 ## Stack
 
@@ -144,19 +117,18 @@ routing keeps GitHub Pages happy. CSS is hand-written; no UI kit.
 
 ```
 src/
-  games/tango/engine.ts       rules, solver, generator, difficulty bands
-  games/queens/engine.ts      placement solver, region growth, generator
-  games/zip/engine.ts         Hamiltonian paths, checkpoints, path validation
-  games/sudoku/engine.ts      6x6 solver, clue carving, conflicts
-  games/patches/engine.ts     rectangle tiling, clue placement, rect helpers
-  games/*/*Game.tsx           one screen per game
-  components/GameShell.tsx    shared game chrome (header, help, layout, footer)
+  games/tango|queens|zip|sudoku|patches|wend/
+      engine.ts     rules, solvers, generators
+      *Game.tsx     one screen per game
+  games/crossclimb/ puzzles.ts (curated ladders) + engine.ts
+  games/pinpoint/   categories.ts (curated set) + engine.ts
+  components/GameShell.tsx    shared header, help dialog, layout, footer
   components/                 icons + modal
   pages/Dashboard.tsx         game shelf
-  lib/                        seeded random, hash router, storage helpers
+  lib/                        seeded random, grid paths, hash router, storage
 scripts/
-  tango|queens|zip|sudoku|patches.test.ts   engine checks
-  ui-check.ts                               headless Chrome end-to-end checks
+  *.test.ts       engine and data checks
+  ui-check.ts     headless Chrome end-to-end run over every game
 ```
 
 ## Local development
@@ -166,10 +138,11 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # type-check + production build into dist/
 npm run preview    # serve the production build
-npm test           # engine tests (Node 22+)
+npm test           # engine and data tests (Node 22+)
 ```
 
-The UI check needs a running preview server plus Chrome:
+The UI check needs a preview server plus Chrome; it plays through all eight
+games:
 
 ```bash
 npm run preview -- --port 4173
@@ -178,20 +151,28 @@ node --experimental-strip-types scripts/ui-check.ts
 
 ## Deploy to GitHub Pages
 
-The workflow in `.github/workflows/deploy.yml` builds and publishes `dist/` on
-every push to `main`.
+`.github/workflows/deploy.yml` builds and publishes `dist/` on every push to
+`main`.
 
 1. In **Settings → Pages → Build and deployment**, set **Source** to
    **GitHub Actions**.
 2. Push to `main`. The site appears at `https://<user>.github.io/<repo>/`.
 
 `vite.config.ts` uses `base: "./"`, so the same build works for a project page, a
-user page, or a custom domain without editing the repo name.
+user page, or a custom domain.
+
+## Credits
+
+- Word list for Wend: [google-10000-english](https://github.com/first20hours/google-10000-english),
+  filtered to 4–8 letter words.
+- Game formats inspired by LinkedIn Games. This is an independent fan project,
+  not affiliated with LinkedIn.
 
 ## Roadmap
 
-- Crossclimb, Pinpoint, Wend (word games).
-- Per-game stats and streaks on the dashboard.
+- More Crossclimb ladders and Pinpoint categories.
+- Streaks and per-game stats on the dashboard.
+- Optional easy mode for Wend (highlight the first letter of each word).
 
 ---
 
@@ -200,13 +181,10 @@ user page, or a custom domain without editing the repo name.
 - `npm install` → `npm run dev` chạy local, `npm run build` tạo bản tĩnh.
 - Đẩy code lên GitHub, vào **Settings → Pages**, chọn **Source: GitHub Actions**;
   workflow có sẵn sẽ tự build và deploy.
-- Đề được sinh ngay trên trình duyệt theo seed (ngày cho puzzle daily), không
-  cần server.
-- **Tango**: độ khó theo số lời giải — Easy nhiều lời giải, Medium 4–5, Hard 2–3,
-  **Deadly đúng 1 lời giải**; luôn có tối thiểu 3 ô khoá không sửa được.
-- **Queens**: đặt N quân hậu trên bàn N×N, mỗi hàng/cột/vùng màu đúng một quân,
-  không quân nào chạm nhau kể cả chéo. Vùng màu là toàn bộ đề bài.
-- **Zip**: một đường liền mạch phủ mọi ô, đi qua các số theo thứ tự tăng dần.
-- **Mini Sudoku**: 6×6, mỗi hàng/cột/hộp 2×3 có đủ 1–6; mỗi đề đúng 1 lời giải.
-- **Patches**: chia bàn thành các hình chữ nhật, mỗi hình chứa đúng 1 số và số đó
-  là diện tích của hình; không chồng lấn, không sót ô.
+- Đủ **8 game** giống LinkedIn: Tango, Queens, Zip, Mini Sudoku, Patches,
+  Crossclimb, Pinpoint, Wend. Đề sinh ngay trên trình duyệt theo seed (ngày cho
+  puzzle daily), không cần server; riêng Crossclimb và Pinpoint dùng bộ nội dung
+  viết tay.
+- Tango quyết định độ khó bằng số lời giải (Deadly đúng 1); Queens càng lớn càng
+  khó; Zip/Wend vẽ đường; Sudoku mỗi đề đúng 1 lời giải; Patches chia hình chữ
+  nhật theo diện tích.
