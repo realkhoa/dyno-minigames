@@ -13,6 +13,8 @@ import { generatePuzzle as generateQueens } from "../src/games/queens/engine.ts"
 import { generatePuzzle as generateZip } from "../src/games/zip/engine.ts";
 import { generatePuzzle as generateSudoku } from "../src/games/sudoku/engine.ts";
 import { generatePuzzle as generatePatches } from "../src/games/patches/engine.ts";
+import { puzzleForSeed } from "../src/games/crossclimb/engine.ts";
+import { categoryForSeed } from "../src/games/pinpoint/engine.ts";
 
 const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const PORT = 9333;
@@ -575,6 +577,86 @@ try {
     "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
   );
   check("patches tiling solves the board", patchesWin.length > 0, patchesWin);
+
+  /* ---------------- Crossclimb ---------------- */
+
+  await cdp.evaluate<void>("location.hash = '#/crossclimb'");
+  await waitFor(
+    cdp,
+    "document.querySelectorAll('.climb-input').length === 3",
+    "the Crossclimb ladder",
+    6000,
+  );
+  const climb = puzzleForSeed(todayKey(), "daily");
+  const climbWords = climb.puzzle.words.slice(1, 4);
+
+  const setInput = (selector: string, index: number, value: string) =>
+    cdp!.evaluate<void>(`(() => {
+      const input = document.querySelectorAll('${selector}')[${index}];
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+      setter.call(input, ${JSON.stringify(value)});
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    })()`);
+
+  await setInput(".climb-input", 0, "ZZZZ");
+  await sleep(150);
+  const wrongClimb = await cdp.evaluate<number>(
+    "document.querySelectorAll('.climb-row.is-correct').length",
+  );
+  check("crossclimb rejects a wrong rung", wrongClimb === 0, `${wrongClimb} correct`);
+
+  await cdp.evaluate(
+    `(async () => {
+      const words = ${JSON.stringify(climbWords)};
+      const inputs = [...document.querySelectorAll('.climb-input')];
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+      for (let i = 0; i < inputs.length; i++) {
+        setter.call(inputs[i], words[i]);
+        inputs[i].dispatchEvent(new Event('input', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 45));
+      }
+    })()`,
+  );
+
+  await waitFor(cdp, "!!document.querySelector('.modal-card.is-win')", "the Crossclimb win dialog", 8000);
+  const climbWin = await cdp.evaluate<string>(
+    "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
+  );
+  check("crossclimb completes the ladder", climbWin.length > 0, climbWin);
+
+  /* ---------------- Pinpoint ---------------- */
+
+  await cdp.evaluate<void>("location.hash = '#/pinpoint'");
+  await waitFor(
+    cdp,
+    "document.querySelectorAll('.pinpoint-clues li').length === 1",
+    "the Pinpoint clue list",
+    6000,
+  );
+  const pinpoint = categoryForSeed(todayKey(), "daily");
+
+  await cdp.evaluate<void>(
+    "[...document.querySelectorAll('button')].find((b) => b.textContent?.includes('Reveal clue 2'))?.click()",
+  );
+  await sleep(160);
+  const clueCount = await cdp.evaluate<number>(
+    "document.querySelectorAll('.pinpoint-clues li').length",
+  );
+  check("pinpoint reveals the next clue", clueCount === 2, `${clueCount} clues`);
+
+  await setInput(".pinpoint-form input", 0, "definitely not the answer");
+  await cdp.evaluate<void>("document.querySelector('.pinpoint-form').requestSubmit()");
+  await sleep(200);
+  const wrongGuess = await cdp.evaluate<boolean>("!!document.querySelector('.board-status.is-warn')");
+  check("pinpoint rejects a wrong category", wrongGuess);
+
+  await setInput(".pinpoint-form input", 0, pinpoint.category.answer);
+  await cdp.evaluate<void>("document.querySelector('.pinpoint-form').requestSubmit()");
+  await waitFor(cdp, "!!document.querySelector('.modal-card.is-win')", "the Pinpoint win dialog", 8000);
+  const pinpointWin = await cdp.evaluate<string>(
+    "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
+  );
+  check("pinpoint accepts the category", pinpointWin.length > 0, pinpointWin);
 
   check("no page exceptions", cdp.errors.length === 0, cdp.errors.slice(0, 2).join(" | "));
 } catch (error) {

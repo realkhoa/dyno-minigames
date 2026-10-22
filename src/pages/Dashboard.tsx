@@ -64,16 +64,18 @@ const GAMES: GameEntry[] = [
     id: "crossclimb",
     name: "Crossclimb",
     blurb: "Climb a ladder of words, one letter at a time, guided by clues.",
-    meta: "Word ladder",
-    status: "soon",
+    meta: "5 rungs · word ladder",
+    status: "live",
+    href: "#/crossclimb",
     mark: <CrossclimbMark />,
   },
   {
     id: "pinpoint",
     name: "Pinpoint",
     blurb: "Five clues, one hidden category. Name it before the reveal.",
-    meta: "Word game",
-    status: "soon",
+    meta: "5 clues · one category",
+    status: "live",
+    href: "#/pinpoint",
     mark: <PinpointMark />,
   },
   {
@@ -104,12 +106,18 @@ export function Dashboard() {
     loadGameJson<{ solved?: boolean }>("sudoku", `medium:${todayKey()}`)?.solved === true;
   const solvedPatches =
     loadGameJson<{ solved?: boolean }>("patches", `medium:${todayKey()}`)?.solved === true;
+  const solvedCrossclimb =
+    loadGameJson<{ solved?: boolean }>("crossclimb", `daily:${todayKey()}`)?.solved === true;
+  const solvedPinpoint =
+    loadGameJson<{ solved?: boolean }>("pinpoint", `daily:${todayKey()}`)?.solved === true;
   const solvedToday: Record<string, boolean> = {
     tango: solvedTango,
     queens: solvedQueens,
     zip: solvedZip,
     sudoku: solvedSudoku,
     patches: solvedPatches,
+    crossclimb: solvedCrossclimb,
+    pinpoint: solvedPinpoint,
   };
   const liveCount = GAMES.filter((game) => game.status === "live").length;
   const dateLabel = new Date().toLocaleDateString(undefined, {

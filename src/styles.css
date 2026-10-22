@@ -1521,6 +1521,206 @@ button {
 }
 
 /* =========================================================
+   Crossclimb
+   ========================================================= */
+
+.climb {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 460px);
+  margin: 0 auto 12px;
+}
+
+.climb-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 18px;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel-2);
+}
+
+.climb-row.is-given {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.climb-row.is-correct {
+  border-color: rgba(126, 200, 176, 0.45);
+}
+
+.climb-step {
+  font-size: 10px;
+  color: var(--soft);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.climb-main {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.climb-clue {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.climb-word {
+  display: flex;
+  gap: 4px;
+}
+
+.climb-tile {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 30px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.climb-input {
+  width: 100%;
+  max-width: 180px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 6px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.climb-input::placeholder {
+  letter-spacing: 6px;
+  color: #3f4653;
+}
+
+.climb-input:focus {
+  outline: 1px solid var(--accent);
+  border-color: transparent;
+}
+
+.climb-row.is-correct .climb-input {
+  color: #9fd8c4;
+  border-color: rgba(126, 200, 176, 0.5);
+}
+
+.climb-mark {
+  font-size: 12px;
+  color: #9fd8c4;
+  text-align: center;
+}
+
+/* =========================================================
+   Pinpoint
+   ========================================================= */
+
+.pinpoint {
+  display: grid;
+  gap: 12px;
+  padding: 4px 4px 10px;
+}
+
+.pinpoint-prompt {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pinpoint-clues {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+  width: min(100%, 430px);
+}
+
+.pinpoint-clues li {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.pinpoint-clue-num {
+  width: 14px;
+  font-size: 10px;
+  color: var(--soft);
+}
+
+.pinpoint-controls {
+  display: flex;
+  justify-content: center;
+}
+
+.pinpoint-form {
+  display: flex;
+  gap: 8px;
+  width: min(100%, 430px);
+  margin-inline: auto;
+}
+
+.pinpoint-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 11px;
+  border-radius: 7px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.pinpoint-form input:focus {
+  outline: 1px solid var(--accent);
+}
+
+.pinpoint-form input:disabled {
+  opacity: 0.5;
+}
+
+.win-answer {
+  margin: 6px 0 2px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.win-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  margin: 4px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--accent-soft);
+}
+
+/* =========================================================
    Animation + responsive
    ========================================================= */
 

@@ -1,5 +1,7 @@
 import { useEffect } from "react";
+import { CrossclimbGame } from "./games/crossclimb/CrossclimbGame";
 import { PatchesGame } from "./games/patches/PatchesGame";
+import { PinpointGame } from "./games/pinpoint/PinpointGame";
 import { QueensGame } from "./games/queens/QueensGame";
 import { SudokuGame } from "./games/sudoku/SudokuGame";
 import { TangoGame } from "./games/tango/TangoGame";
@@ -25,6 +27,10 @@ export default function App() {
       return <SudokuGame />;
     case "patches":
       return <PatchesGame />;
+    case "crossclimb":
+      return <CrossclimbGame />;
+    case "pinpoint":
+      return <PinpointGame />;
     default:
       return <Dashboard />;
   }
