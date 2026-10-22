@@ -71,36 +71,26 @@ export function Dashboard() {
         </a>
         <div className="header-badges">
           <span className="pill-chip">{dateLabel}</span>
-          <span className="pill-chip is-accent">v0.1 MVP</span>
         </div>
       </header>
 
       <main id="main">
         <section className="hero">
-          <p className="eyebrow">Daily mini games</p>
-          <h1>
-            Small puzzles.
-            <br />
-            <em>One dashboard.</em>
-          </h1>
+          <h1 id="games-title">Games</h1>
           <p className="hero-lede">
-            A growing shelf of quick logic games. Today there is Tango — a 6×6 balance of suns and
-            moons with locked clues and linked cells. More games are on the way.
+            Small daily logic puzzles. Tango is live; a few more are on the way. Everything runs in
+            the browser — no account, no backend.
           </p>
           <div className="hero-stats">
             <span className="pill-chip">
               <span className="live-dot" aria-hidden="true" />1 playable
             </span>
-            <span className="pill-chip">3 in the works</span>
-            <span className="pill-chip">No sign-up · local save</span>
+            <span className="pill-chip">3 planned</span>
+            <span className="pill-chip">Progress saved locally</span>
           </div>
         </section>
 
         <section className="games-section" aria-labelledby="games-title">
-          <div className="section-head">
-            <h2 id="games-title">Games</h2>
-            <span className="section-meta">Pick one and play</span>
-          </div>
           <div className="game-grid">
             {GAMES.map((game) =>
               game.status === "live" ? (
