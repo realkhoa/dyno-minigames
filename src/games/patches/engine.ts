@@ -7,8 +7,10 @@
  *  - The clue's number is the area of its rectangle.
  *  - No overlaps and no uncovered cells.
  *
- * Boards are built by recursively cutting a rectangle, which guarantees a
- * solvable tiling; players may commit any valid tiling.
+ * Boards are built by filling the grid from the top-left-most free cell with
+ * randomly sized rectangles. That produces small, irregular patches instead of
+ * the tidy guillotine cuts a recursive splitter makes. A Shikaku solver then
+ * counts the tilings, and the generator keeps the tightest board it finds.
  */
 
 import { hashSeed, mulberry32 } from "../../lib/random.ts";
@@ -31,6 +33,8 @@ export interface PatchesPuzzle {
   clues: PatchClue[];
   /** The tiling the board was generated from. */
   solution: PatchClue[];
+  /** Number of valid tilings (capped at 2 during generation). */
+  solutionCount: number;
 }
 
 export interface PlacedPatch {
@@ -51,11 +55,11 @@ export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   deadly: "Deadly",
 };
 
-const SETTINGS: Record<Difficulty, { size: number; patches: number }> = {
-  easy: { size: 6, patches: 12 },
-  medium: { size: 7, patches: 10 },
-  hard: { size: 8, patches: 9 },
-  deadly: { size: 8, patches: 7 },
+const SETTINGS: Record<Difficulty, { size: number; patches: number; maxArea: number }> = {
+  easy: { size: 6, patches: 10, maxArea: 5 },
+  medium: { size: 7, patches: 12, maxArea: 6 },
+  hard: { size: 8, patches: 14, maxArea: 7 },
+  deadly: { size: 9, patches: 16, maxArea: 8 },
 };
 
 interface Rect {
@@ -67,84 +71,249 @@ interface Rect {
 
 const areaOf = (rect: Rect) => rect.w * rect.h;
 
-function canSplit(rect: Rect): boolean {
-  if (rect.w >= 2) {
-    for (let cut = 1; cut < rect.w; cut++) {
-      if (cut * rect.h >= 2 && (rect.w - cut) * rect.h >= 2) return true;
+/* ------------------------------------------------------------------ */
+/* Tiling                                                              */
+/* ------------------------------------------------------------------ */
+
+function fits(
+  filled: Uint8Array,
+  size: number,
+  x0: number,
+  y0: number,
+  w: number,
+  h: number,
+): boolean {
+  for (let y = y0; y < y0 + h; y++) {
+    for (let x = x0; x < x0 + w; x++) {
+      if (filled[y * size + x]) return false;
     }
   }
-  if (rect.h >= 2) {
-    for (let cut = 1; cut < rect.h; cut++) {
-      if (cut * rect.w >= 2 && (rect.h - cut) * rect.w >= 2) return true;
-    }
-  }
-  return false;
+  return true;
 }
 
-function splitRect(rect: Rect, rng: () => number): [Rect, Rect] {
-  const cuts: Array<{ axis: "x" | "y"; at: number }> = [];
-  for (let cut = 1; cut < rect.w; cut++) {
-    if (cut * rect.h >= 2 && (rect.w - cut) * rect.h >= 2) {
-      cuts.push({ axis: "x", at: cut });
+/**
+ * Fill the board with exactly `target` rectangles of 2..maxArea cells.
+ * The first free cell (row-major) is always the top-left corner of the next
+ * patch, which keeps the partition valid while allowing irregular shapes.
+ */
+function tileBoard(
+  size: number,
+  target: number,
+  maxArea: number,
+  rng: () => number,
+): Rect[] | null {
+  const total = size * size;
+  const filled = new Uint8Array(total);
+  const rects: Rect[] = [];
+  let budget = 60000;
+
+  const collect = (minArea: number, maxAllowed: number, x0: number, y0: number) => {
+    const options: Array<{ w: number; h: number }> = [];
+    for (let h = 1; y0 + h <= size; h++) {
+      if (filled[(y0 + h - 1) * size + x0]) break;
+      for (let w = 1; x0 + w <= size; w++) {
+        const area = w * h;
+        if (area > maxAllowed) break;
+        if (area < minArea) continue;
+        if (fits(filled, size, x0, y0, w, h)) options.push({ w, h });
+        if (filled[y0 * size + x0 + w - 1]) break;
+      }
     }
-  }
-  for (let cut = 1; cut < rect.h; cut++) {
-    if (cut * rect.w >= 2 && (rect.h - cut) * rect.w >= 2) {
-      cuts.push({ axis: "y", at: cut });
+    return options;
+  };
+
+  const dfs = (free: number): boolean => {
+    if (free === 0) return rects.length === target;
+    if (rects.length >= target) return false;
+    if (budget-- <= 0) return false;
+    const remaining = target - rects.length;
+    if (free < remaining * 2) return false;
+
+    let first = -1;
+    for (let i = 0; i < total; i++) {
+      if (!filled[i]) {
+        first = i;
+        break;
+      }
     }
-  }
-  const choice = cuts[Math.floor(rng() * cuts.length)];
-  if (choice.axis === "x") {
-    return [
-      { x: rect.x, y: rect.y, w: choice.at, h: rect.h },
-      { x: rect.x + choice.at, y: rect.y, w: rect.w - choice.at, h: rect.h },
-    ];
-  }
-  return [
-    { x: rect.x, y: rect.y, w: rect.w, h: choice.at },
-    { x: rect.x, y: rect.y + choice.at, w: rect.w, h: rect.h - choice.at },
-  ];
+    if (first < 0) return false;
+    const x0 = first % size;
+    const y0 = Math.floor(first / size);
+
+    const ideal = free / remaining;
+    let options = collect(Math.max(2, Math.floor(ideal) - 1), Math.min(maxArea, Math.ceil(ideal) + 1), x0, y0);
+    if (options.length === 0) options = collect(2, maxArea, x0, y0);
+    if (options.length === 0) return false;
+
+    for (let i = options.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [options[i], options[j]] = [options[j], options[i]];
+    }
+
+    for (const { w, h } of options) {
+      for (let y = y0; y < y0 + h; y++) {
+        for (let x = x0; x < x0 + w; x++) filled[y * size + x] = 1;
+      }
+      rects.push({ x: x0, y: y0, w, h });
+      if (dfs(free - w * h)) return true;
+      rects.pop();
+      for (let y = y0; y < y0 + h; y++) {
+        for (let x = x0; x < x0 + w; x++) filled[y * size + x] = 0;
+      }
+      if (budget <= 0) return false;
+    }
+    return false;
+  };
+
+  return dfs(total) ? rects.slice() : null;
 }
 
-function cutIntoTiles(size: number, target: number, rng: () => number): Rect[] {
-  let rects: Rect[] = [{ x: 0, y: 0, w: size, h: size }];
+/* ------------------------------------------------------------------ */
+/* Solver                                                              */
+/* ------------------------------------------------------------------ */
 
-  while (rects.length < target) {
-    const candidates = rects.filter(canSplit);
-    if (candidates.length === 0) break;
-    candidates.sort((a, b) => areaOf(b) - areaOf(a));
-    const pool = candidates.slice(0, Math.max(1, Math.ceil(candidates.length / 2)));
-    const rect = pool[Math.floor(rng() * pool.length)];
-    const [first, second] = splitRect(rect, rng);
-    rects = rects.filter((item) => item !== rect);
-    rects.push(first, second);
-  }
-  return rects;
+/**
+ * Count valid tilings, stopping at `limit`.
+ * The first uncovered cell must be inside exactly one clue's rectangle.
+ */
+export function countSolutions(puzzle: PatchesPuzzle, limit = 2): number {
+  const size = puzzle.size;
+  const total = size * size;
+  const clues = puzzle.clues;
+  const covered = new Uint8Array(total);
+  const used = new Uint8Array(clues.length);
+  const owner = new Int16Array(total).fill(-1);
+  clues.forEach((clue, index) => {
+    owner[clue.y * size + clue.x] = index;
+  });
+
+  let unusedArea = clues.reduce((sum, clue) => sum + clue.area, 0);
+  let free = total;
+  let count = 0;
+
+  const dfs = (): void => {
+    if (count >= limit) return;
+    if (free !== unusedArea) return;
+
+    let first = -1;
+    for (let i = 0; i < total; i++) {
+      if (!covered[i]) {
+        first = i;
+        break;
+      }
+    }
+    if (first < 0) {
+      count += 1;
+      return;
+    }
+    const fx = first % size;
+    const fy = Math.floor(first / size);
+
+    for (let ci = 0; ci < clues.length; ci++) {
+      if (used[ci]) continue;
+      const clue = clues[ci];
+      const area = clue.area;
+
+      for (let w = 1; w <= area; w++) {
+        if (area % w !== 0) continue;
+        const h = area / w;
+        if (w > size || h > size) continue;
+
+        const rxMin = Math.max(0, clue.x - w + 1, fx - w + 1);
+        const rxMax = Math.min(clue.x, size - w, fx);
+        const ryMin = Math.max(0, clue.y - h + 1, fy - h + 1);
+        const ryMax = Math.min(clue.y, size - h, fy);
+        if (rxMin > rxMax || ryMin > ryMax) continue;
+
+        for (let ry = ryMin; ry <= ryMax; ry++) {
+          for (let rx = rxMin; rx <= rxMax; rx++) {
+            let ok = true;
+            for (let y = ry; y < ry + h && ok; y++) {
+              for (let x = rx; x < rx + w; x++) {
+                const cell = y * size + x;
+                if (covered[cell]) {
+                  ok = false;
+                  break;
+                }
+                const cellOwner = owner[cell];
+                if (cellOwner !== -1 && cellOwner !== ci) {
+                  ok = false;
+                  break;
+                }
+              }
+            }
+            if (!ok) continue;
+
+            for (let y = ry; y < ry + h; y++) {
+              for (let x = rx; x < rx + w; x++) covered[y * size + x] = 1;
+            }
+            free -= area;
+            unusedArea -= area;
+            used[ci] = 1;
+
+            dfs();
+
+            used[ci] = 0;
+            unusedArea += area;
+            free += area;
+            for (let y = ry; y < ry + h; y++) {
+              for (let x = rx; x < rx + w; x++) covered[y * size + x] = 0;
+            }
+            if (count >= limit) return;
+          }
+        }
+      }
+    }
+  };
+
+  dfs();
+  return count;
 }
+
+/* ------------------------------------------------------------------ */
+/* Generation                                                          */
+/* ------------------------------------------------------------------ */
+
+const ATTEMPTS = 40;
 
 export function generatePuzzle(
   seed: string,
   difficulty: Difficulty = "medium",
 ): PatchesPuzzle {
   const settings = SETTINGS[difficulty] ?? SETTINGS.medium;
-  const rng = mulberry32(hashSeed(`${seed}|patches|${difficulty}`));
-  const rects = cutIntoTiles(settings.size, settings.patches, rng);
+  let best: PatchesPuzzle | null = null;
 
-  const clues: PatchClue[] = rects.map((rect) => ({
-    ...rect,
-    area: areaOf(rect),
-  }));
+  for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+    const rng = mulberry32(hashSeed(`${seed}|patches|${difficulty}|${attempt}`));
+    const rects = tileBoard(settings.size, settings.patches, settings.maxArea, rng);
+    if (!rects) continue;
 
-  return {
-    id: `${difficulty}:${seed}`,
-    size: settings.size,
-    difficulty,
-    clues,
-    solution: clues,
-  };
+    const clues: PatchClue[] = rects.map((rect) => ({ ...rect, area: areaOf(rect) }));
+    const puzzle: PatchesPuzzle = {
+      id: `${difficulty}:${seed}`,
+      size: settings.size,
+      difficulty,
+      clues,
+      solution: clues,
+      solutionCount: 0,
+    };
+
+    const solutionCount = countSolutions(puzzle, 2);
+    if (solutionCount === 0) continue;
+    puzzle.solutionCount = solutionCount;
+
+    if (solutionCount === 1) return puzzle;
+    if (!best || solutionCount < best.solutionCount) best = puzzle;
+  }
+
+  if (best) return best;
+  throw new Error(`Patches: could not generate a "${difficulty}" puzzle for "${seed}"`);
 }
 
-/** Clue that sits on a cell, if any. */
+/* ------------------------------------------------------------------ */
+/* Helpers used by the board                                           */
+/* ------------------------------------------------------------------ */
+
 export function clueAt(puzzle: PatchesPuzzle, cell: number): PatchClue | null {
   const x = cell % puzzle.size;
   const y = Math.floor(cell / puzzle.size);
@@ -175,9 +344,7 @@ export function rectCellCount(rect: Rect): number {
 }
 
 export function overlaps(a: Rect, b: Rect): boolean {
-  return (
-    a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
-  );
+  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 }
 
 export function rectContains(rect: Rect, clue: PatchClue): boolean {
@@ -192,16 +359,6 @@ export function cluesInside(puzzle: PatchesPuzzle, rect: Rect): PatchClue[] {
 /** Area covered by the placed patches. */
 export function coveredArea(patches: readonly PlacedPatch[]): number {
   return patches.reduce((total, patch) => total + patch.w * patch.h, 0);
-}
-
-/** Assign each placed patch to a palette slot so neighbours differ. */
-export function patchColorIndex(patches: readonly PlacedPatch[], patch: PlacedPatch): number {
-  let index = 0;
-  for (const other of patches) {
-    if (other === patch) break;
-    index += 1;
-  }
-  return index;
 }
 
 export function todayKey(date = new Date()): string {

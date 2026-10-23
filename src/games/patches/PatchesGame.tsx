@@ -287,7 +287,10 @@ export function PatchesGame() {
             <li>Tap a placed patch to remove it.</li>
           </ul>
           <p className="modal-note">
-            Rectangles and squares both count. Any complete, valid partition solves the board.
+            Rectangles and squares both count.{" "}
+            {puzzle.solutionCount === 1
+              ? "Each board has exactly one valid partition."
+              : "More than one partition exists — any complete, valid one wins."}
           </p>
         </>
       }
@@ -488,8 +491,8 @@ export function PatchesGame() {
               </dd>
             </div>
             <div>
-              <dt>Clues</dt>
-              <dd>{puzzle.clues.length}</dd>
+              <dt>Solutions</dt>
+              <dd>{puzzle.solutionCount}</dd>
             </div>
           </dl>
         </section>

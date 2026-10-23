@@ -96,12 +96,15 @@ daily puzzle is identical for everyone with no backend.
 - **Queens** — place a random legal queen set, grow one connected region per
   queen, and keep the tightest of ~180 candidate partitions. 6×6 boards come out
   unique; larger boards keep a handful of solutions and accept any valid one.
-- **Zip** — random Hamiltonian path (Warnsdorff DFS), then checkpoints at
-  stratified positions along it.
+- **Zip** — random Hamiltonian path (Warnsdorff DFS); checkpoints are scattered
+  at random along it, and walls are dropped on edges the path never uses. Boards
+  run from 6×6 with 9 numbers up to 7×7 with 4 numbers and 10 walls.
+- **Patches** — fill the board from the top-left-most free cell with rectangles
+  of 2–8 cells, which gives small irregular patches instead of guillotine cuts.
+  A Shikaku solver counts the tilings and generation keeps a board with exactly
+  one: 10 patches on 6×6 up to 16 on 9×9.
 - **Mini Sudoku** — fill a 6×6 grid, then remove clues while the solver still
   finds exactly one solution.
-- **Patches** — recursively cut the board into rectangles, then place an area
-  clue in each patch.
 - **Wend** — cut a Hamiltonian path into words of the target lengths and fill
   each segment from the bundled word list (4–8 letters).
 - **Crossclimb** and **Pinpoint** use curated content: 16 ladders and 32

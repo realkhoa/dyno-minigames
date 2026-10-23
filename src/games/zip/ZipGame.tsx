@@ -17,6 +17,7 @@ import {
   DIFFICULTIES,
   DIFFICULTY_LABELS,
   areAdjacent,
+  crossesWall,
   generatePuzzle,
   isSolved,
   neighbors,
@@ -62,7 +63,10 @@ export function ZipGame() {
   const [dragging, setDragging] = useState(false);
   const [winDismissed, setWinDismissed] = useState(false);
 
-  const solved = useMemo(() => isSolved(size, puzzle.numbers, path), [size, puzzle.numbers, path]);
+  const solved = useMemo(
+    () => isSolved(size, puzzle.numbers, path, puzzle.walls),
+    [size, puzzle.numbers, puzzle.walls, path],
+  );
   const visited = useMemo(() => new Set(path), [path]);
   const next = useMemo(() => nextNumber(path, puzzle.numbers), [path, puzzle.numbers]);
   const last = path.length > 0 ? path[path.length - 1] : null;
@@ -119,6 +123,7 @@ export function ZipGame() {
         const existing = previous.indexOf(index);
         if (existing >= 0) return previous.slice(0, existing + 1);
         if (!areAdjacent(size, tail, index)) return previous;
+        if (crossesWall(puzzle.walls, tail, index)) return previous;
 
         const expected = puzzle.numbers[reachedCount(previous, puzzle.numbers)];
         const checkpoint = puzzle.numbers.find((number) => number.index === index);
@@ -127,7 +132,7 @@ export function ZipGame() {
         return [...previous, index];
       });
     },
-    [puzzle.numbers, size],
+    [puzzle.numbers, puzzle.walls, size],
   );
 
   const onPointerDown = (event: ReactPointerEvent<HTMLButtonElement>, index: number) => {
@@ -189,6 +194,8 @@ export function ZipGame() {
           {size}×{size}
           <span className="dot-separator">·</span>
           {puzzle.numbers.length} checkpoints
+          <span className="dot-separator">·</span>
+          {puzzle.walls.length} walls
         </>
       }
       helpTitle="How to play Zip"
@@ -201,6 +208,7 @@ export function ZipGame() {
             <li>Start on 1 and finish on the highest number.</li>
             <li>Visit every cell exactly once — no gaps, no crossing yourself.</li>
             <li>Numbers must be reached in ascending order.</li>
+            <li>Thick walls between cells cannot be crossed.</li>
             <li>Drag across cells, or tap them one after another.</li>
             <li>Click an earlier cell on the path to undo back to it.</li>
           </ul>
@@ -292,6 +300,39 @@ export function ZipGame() {
                         restart();
                       }
                     }}
+                  />
+                );
+              })}
+            </div>
+
+            <div className="zip-walls" aria-hidden="true">
+              {puzzle.walls.map(([a, b], index) => {
+                const ax = a % size;
+                const ay = Math.floor(a / size);
+                const bx = b % size;
+                const by = Math.floor(b / size);
+                const vertical = ay === by;
+                return (
+                  <span
+                    key={index}
+                    className="zip-wall"
+                    style={
+                      vertical
+                        ? {
+                            left: `${(Math.max(ax, bx) / size) * 100}%`,
+                            top: `${(ay / size) * 100}%`,
+                            width: "3px",
+                            height: `${(1 / size) * 100}%`,
+                            transform: "translateX(-50%)",
+                          }
+                        : {
+                            top: `${(Math.max(ay, by) / size) * 100}%`,
+                            left: `${(ax / size) * 100}%`,
+                            height: "3px",
+                            width: `${(1 / size) * 100}%`,
+                            transform: "translateY(-50%)",
+                          }
+                    }
                   />
                 );
               })}
@@ -409,6 +450,7 @@ export function ZipGame() {
             <li>Start on 1 and end on the highest number.</li>
             <li>Cover every cell exactly once.</li>
             <li>Numbers must be reached in ascending order.</li>
+            <li>Walls between cells cannot be crossed.</li>
             <li>Drag across cells, or tap them one by one.</li>
             <li>Tap an earlier cell to undo back to it.</li>
           </ul>

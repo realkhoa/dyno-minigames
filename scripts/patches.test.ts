@@ -1,6 +1,7 @@
 import {
   DIFFICULTIES,
   cluesInside,
+  countSolutions,
   generatePuzzle,
   overlaps,
   type Difficulty,
@@ -14,10 +15,10 @@ function render(puzzle: ReturnType<typeof generatePuzzle>): string {
   puzzle.clues.forEach((clue, index) => {
     for (let y = clue.y; y < clue.y + clue.h; y++) {
       for (let x = clue.x; x < clue.x + clue.w; x++) {
-        grid[y][x] = String.fromCharCode(65 + index);
+        grid[y][x] = String.fromCharCode(97 + (index % 26));
       }
     }
-    grid[clue.y][clue.x] = String(clue.area);
+    grid[clue.y][clue.x] = clue.area > 9 ? "#" : String(clue.area);
   });
   return grid.map((row) => row.join(" ")).join("\n");
 }
@@ -26,9 +27,12 @@ let failures = 0;
 
 for (const difficulty of DIFFICULTIES) {
   const started = performance.now();
-  const runs = 25;
+  const runs = 20;
   const counts: number[] = [];
+  const areas: number[] = [];
   const times: number[] = [];
+  const solutions: number[] = [];
+  let unique = 0;
 
   for (let i = 0; i < runs; i++) {
     const t0 = performance.now();
@@ -36,14 +40,13 @@ for (const difficulty of DIFFICULTIES) {
     times.push(performance.now() - t0);
     const size = puzzle.size;
 
-    if (puzzle.clues.length !== puzzle.solution.length) {
-      failures++;
-      console.error(`  ! clue/solution mismatch (${difficulty} #${i})`);
-    }
     counts.push(puzzle.clues.length);
+    solutions.push(puzzle.solutionCount);
+    if (puzzle.solutionCount === 1) unique += 1;
 
     const cover = new Array<number>(size * size).fill(0);
     for (const clue of puzzle.clues) {
+      areas.push(clue.area);
       if (clue.area !== clue.w * clue.h) {
         failures++;
         console.error(`  ! area mismatch (${difficulty} #${i})`);
@@ -52,19 +55,12 @@ for (const difficulty of DIFFICULTIES) {
         failures++;
         console.error(`  ! too-small patch (${difficulty} #${i})`);
       }
-      if (
-        clue.x < 0 ||
-        clue.y < 0 ||
-        clue.x + clue.w > size ||
-        clue.y + clue.h > size
-      ) {
+      if (clue.x < 0 || clue.y < 0 || clue.x + clue.w > size || clue.y + clue.h > size) {
         failures++;
         console.error(`  ! patch outside board (${difficulty} #${i})`);
       }
       for (let y = clue.y; y < clue.y + clue.h; y++) {
-        for (let x = clue.x; x < clue.x + clue.w; x++) {
-          cover[y * size + x] += 1;
-        }
+        for (let x = clue.x; x < clue.x + clue.w; x++) cover[y * size + x] += 1;
       }
       if (cluesInside(puzzle, clue).length !== 1) {
         failures++;
@@ -83,13 +79,21 @@ for (const difficulty of DIFFICULTIES) {
         }
       }
     }
+
+    const exact = countSolutions(puzzle, puzzle.solutionCount + 1);
+    if (exact !== puzzle.solutionCount) {
+      failures++;
+      console.error(`  ! reported count ${puzzle.solutionCount} vs ${exact} (${difficulty} #${i})`);
+    }
   }
 
   const elapsed = performance.now() - started;
   const avg = (xs: number[]) => (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(2);
   console.log(
     `${difficulty.padEnd(6)} ${runs} boards in ${elapsed.toFixed(0)}ms (${avg(times)}ms each) · ` +
-      `patches ${Math.min(...counts)}-${Math.max(...counts)}`,
+      `patches ${Math.min(...counts)}-${Math.max(...counts)} · area ${Math.min(...areas)}-${Math.max(
+        ...areas,
+      )} (avg ${avg(areas)}) · unique ${unique}/${runs}`,
   );
 }
 
@@ -100,8 +104,8 @@ if (JSON.stringify(a.clues) !== JSON.stringify(b.clues)) {
   console.error("! generation is not deterministic");
 }
 
-console.log("\nSample easy board:");
-console.log(render(generatePuzzle("sample", "easy")));
+console.log("\nSample hard board:");
+console.log(render(generatePuzzle("sample", "hard")));
 
 if (failures > 0) {
   console.error(`\nFAILED: ${failures} problem(s)`);

@@ -5,6 +5,7 @@
  *  - Draw one continuous path through every cell of the grid.
  *  - The path starts on 1 and visits the numbered cells in ascending order.
  *  - No cell may be visited twice and the path never branches.
+ *  - Walls between cells cannot be crossed.
  */
 
 import { hashSeed, mulberry32 } from "../../lib/random.ts";
@@ -17,6 +18,8 @@ export interface ZipNumber {
   value: number;
 }
 
+export type Wall = [number, number];
+
 export interface ZipPuzzle {
   id: string;
   size: number;
@@ -25,6 +28,8 @@ export interface ZipPuzzle {
   numbers: ZipNumber[];
   /** One valid full path (cell indices). */
   solution: number[];
+  /** Impassable edges, as pairs of adjacent cells. */
+  walls: Wall[];
 }
 
 export const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "deadly"];
@@ -36,27 +41,62 @@ export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   deadly: "Deadly",
 };
 
-const SETTINGS: Record<Difficulty, { size: number; numbers: number }> = {
-  easy: { size: 5, numbers: 8 },
-  medium: { size: 6, numbers: 8 },
-  hard: { size: 6, numbers: 5 },
-  deadly: { size: 7, numbers: 5 },
+const SETTINGS: Record<Difficulty, { size: number; numbers: number; walls: number }> = {
+  easy: { size: 6, numbers: 9, walls: 2 },
+  medium: { size: 6, numbers: 6, walls: 4 },
+  hard: { size: 7, numbers: 5, walls: 7 },
+  deadly: { size: 7, numbers: 4, walls: 10 },
 };
 
 export { areAdjacent, cellIndex, neighbors, randomPath } from "../../lib/grid.ts";
 
-function pickNumberPositions(length: number, count: number, rng: () => number): number[] {
-  const slots = Math.max(0, Math.min(count - 2, length - 2));
-  const positions: number[] = [0];
+export function edgeKey(a: number, b: number): string {
+  return a < b ? `${a}-${b}` : `${b}-${a}`;
+}
 
-  for (let k = 0; k < slots; k++) {
-    const from = 1 + Math.floor(((length - 2) * k) / slots);
-    const to = Math.floor(((length - 2) * (k + 1)) / slots);
-    const span = Math.max(1, to - from + 1);
-    positions.push(from + Math.floor(rng() * span));
+export function crossesWall(walls: readonly Wall[], a: number, b: number): boolean {
+  const key = edgeKey(a, b);
+  return walls.some(([x, y]) => edgeKey(x, y) === key);
+}
+
+/**
+ * Checkpoints are scattered at random along the solution path, so segment
+ * lengths vary instead of being evenly spaced.
+ */
+function pickNumberPositions(length: number, count: number, rng: () => number): number[] {
+  const wanted = Math.max(2, Math.min(count, length));
+  const positions = new Set<number>([0, length - 1]);
+  let guard = 600;
+  while (positions.size < wanted && guard-- > 0) {
+    positions.add(1 + Math.floor(rng() * (length - 2)));
   }
-  positions.push(length - 1);
-  return positions;
+  return [...positions].sort((a, b) => a - b);
+}
+
+/** Walls go on edges the solution never uses, so a path always exists. */
+function pickWalls(size: number, path: readonly number[], count: number, rng: () => number): Wall[] {
+  const used = new Set<string>();
+  for (let i = 1; i < path.length; i++) {
+    used.add(edgeKey(path[i - 1], path[i]));
+  }
+
+  const candidates: Wall[] = [];
+  for (let cell = 0; cell < size * size; cell++) {
+    const row = Math.floor(cell / size);
+    const col = cell % size;
+    if (col + 1 < size && !used.has(edgeKey(cell, cell + 1))) {
+      candidates.push([cell, cell + 1]);
+    }
+    if (row + 1 < size && !used.has(edgeKey(cell, cell + size))) {
+      candidates.push([cell, cell + size]);
+    }
+  }
+
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+  return candidates.slice(0, Math.min(count, candidates.length));
 }
 
 export function generatePuzzle(seed: string, difficulty: Difficulty = "medium"): ZipPuzzle {
@@ -73,6 +113,7 @@ export function generatePuzzle(seed: string, difficulty: Difficulty = "medium"):
       index: path[position],
       value: order + 1,
     }));
+    const walls = pickWalls(size, path, settings.walls, rng);
 
     return {
       id: `${difficulty}:${seed}`,
@@ -80,6 +121,7 @@ export function generatePuzzle(seed: string, difficulty: Difficulty = "medium"):
       difficulty,
       numbers,
       solution: path,
+      walls,
     };
   }
 
@@ -109,6 +151,7 @@ export function isSolved(
   size: number,
   numbers: readonly ZipNumber[],
   path: readonly number[],
+  walls: readonly Wall[] = [],
 ): boolean {
   const total = size * size;
   if (path.length !== total) return false;
@@ -116,6 +159,7 @@ export function isSolved(
   if (path[0] !== numbers[0]?.index) return false;
   for (let i = 1; i < path.length; i++) {
     if (!areAdjacent(size, path[i - 1], path[i])) return false;
+    if (crossesWall(walls, path[i - 1], path[i])) return false;
   }
 
   const order = new Map<number, number>();

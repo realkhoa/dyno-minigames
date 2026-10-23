@@ -432,6 +432,9 @@ try {
   );
   check("zip starts on the first number", started === 1, `${started} cells`);
 
+  const wallCount = await cdp.evaluate<number>("document.querySelectorAll('.zip-wall').length");
+  check("zip renders its walls", wallCount === zipPuzzle.walls.length, `${wallCount} walls`);
+
   const beforeJump = await cdp.evaluate<number>(
     "document.querySelectorAll('.zip-cell.is-visited').length",
   );

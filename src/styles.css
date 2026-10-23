@@ -1302,16 +1302,30 @@ button {
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
   color: #b3c5da;
+}
+
+.zip-walls {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.zip-wall {
+  position: absolute;
+  display: block;
+  background: #5d687a;
+  border-radius: 2px;
 }
 
 .zip-numbers {
   position: absolute;
   inset: 0;
   display: grid;
-  z-index: 3;
+  z-index: 4;
   pointer-events: none;
 }
 
