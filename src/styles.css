@@ -6,26 +6,26 @@
 :root {
   color-scheme: dark;
   --bg: #1e1e1e;
-  --panel: #252526;
-  --chrome: #2d2d30;
-  --chrome-2: #333337;
-  --border: #3f3f46;
-  --border-soft: #333337;
-  --text: #d4d4d4;
-  --muted: #9d9d9d;
-  --soft: #6d6d6d;
-  --accent: #007acc;
-  --accent-2: #0e639c;
-  --accent-hover: #1177bb;
-  --selection: #264f78;
-  --hover: #2a2d2e;
-  --btn: #3c3c3c;
-  --btn-border: #555555;
-  --sun: #dcdcaa;
-  --moon: #9cdcfe;
-  --danger: #f48771;
-  --ok: #4ec9b0;
-  --warn: #cca700;
+  --panel: #242424;
+  --chrome: #2b2b2b;
+  --chrome-2: #313131;
+  --border: #3a3a3a;
+  --border-soft: #333333;
+  --text: #c2c2c2;
+  --muted: #8a8a8a;
+  --soft: #6a6a6a;
+  --accent: #5d7f94;
+  --accent-2: #3f5665;
+  --accent-hover: #4a6577;
+  --selection: #33414b;
+  --hover: #292929;
+  --btn: #2f2f2f;
+  --btn-border: #444444;
+  --sun: #cfc7ae;
+  --moon: #b6c6d0;
+  --danger: #c47a6a;
+  --ok: #8f9f94;
+  --warn: #b0a070;
   --mono: Consolas, "Cascadia Mono", "Courier New", monospace;
   --font: "Segoe UI", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -49,7 +49,7 @@ body {
 }
 
 a {
-  color: #3794ff;
+  color: #8fa3b0;
 }
 
 button {
@@ -88,13 +88,13 @@ button {
   align-items: center;
   gap: 7px;
   font-size: 12px;
-  color: #cccccc;
+  color: #b0b0b0;
 }
 
 .vs-brand-mark {
   width: 14px;
   height: 14px;
-  background: linear-gradient(135deg, #68217a 0 52%, #007acc 52% 100%);
+  background: linear-gradient(135deg, #3a3a3a 0 52%, #4a4a4a 52% 100%);
   border-radius: 1px;
 }
 
@@ -131,14 +131,14 @@ button {
 }
 
 .vs-tab:hover {
-  background: #3e3e42;
+  background: #353535;
   color: var(--text);
 }
 
 .vs-tab.is-active {
   background: var(--bg);
   color: var(--text);
-  border-top-color: var(--accent);
+  border-top-color: #6a8798;
 }
 
 .vs-tab-close {
@@ -151,8 +151,8 @@ button {
 }
 
 .vs-tab-close:hover {
-  background: #4a4a4f;
-  color: #fff;
+  background: #3a3a3a;
+  color: #ddd;
 }
 
 .vs-content {
@@ -170,8 +170,9 @@ button {
   justify-content: space-between;
   gap: 12px;
   padding: 0 10px;
-  background: var(--accent);
-  color: #fff;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
   font-size: 11px;
 }
 
@@ -186,7 +187,7 @@ button {
 }
 
 .vs-statusbar a {
-  color: #fff;
+  color: var(--muted);
   text-decoration: none;
 }
 
@@ -244,7 +245,7 @@ button {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #c8c8c8;
+  color: #b0b0b0;
 }
 
 .start-section-head span {
@@ -287,7 +288,7 @@ button {
 .game-icon svg {
   width: 18px;
   height: 18px;
-  filter: saturate(0.6);
+  filter: grayscale(1) brightness(0.95) opacity(0.55);
 }
 
 .game-name {
@@ -323,9 +324,9 @@ button {
 }
 
 .tag.live {
-  color: var(--moon);
-  border-color: #0e639c;
-  background: rgba(14, 99, 156, 0.18);
+  color: var(--muted);
+  border-color: var(--border);
+  background: transparent;
 }
 
 .tag.soon {
@@ -344,7 +345,7 @@ button {
 }
 
 .start-hint-label {
-  color: var(--accent);
+  color: var(--soft);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -447,7 +448,7 @@ button {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #c8c8c8;
+  color: #b0b0b0;
 }
 
 .panel-head {
@@ -466,7 +467,7 @@ button {
 .progress {
   height: 4px;
   margin: 3px 0 10px;
-  background: #3f3f46;
+  background: #3a3a3a;
   overflow: hidden;
 }
 
@@ -555,7 +556,7 @@ button {
   padding: 0;
   border: 0;
   background: none;
-  color: #3794ff;
+  color: #8fa3b0;
   font-size: 11.5px;
   cursor: pointer;
 }
@@ -586,7 +587,7 @@ button {
 }
 
 .btn:hover {
-  background: #4a4a4f;
+  background: #3a3a3a;
 }
 
 .btn:focus-visible {
@@ -902,7 +903,7 @@ button {
 .tango-cell.is-conflict {
   background: rgba(244, 135, 113, 0.14);
   border-color: var(--danger);
-  color: #f48771;
+  color: var(--danger);
 }
 
 .tango-rel {
@@ -929,7 +930,7 @@ button {
 }
 
 .tango-rel.diff {
-  color: #ce9178;
+  color: #b08a72;
 }
 
 .tango-rel.rel-right {
@@ -976,16 +977,16 @@ button {
 }
 
 .queens-cell.edge-t {
-  border-top: 1px solid #6d6d6d;
+  border-top: 1px solid #666666;
 }
 .queens-cell.edge-l {
-  border-left: 1px solid #6d6d6d;
+  border-left: 1px solid #666666;
 }
 .queens-cell.edge-r {
-  border-right: 1px solid #6d6d6d;
+  border-right: 1px solid #666666;
 }
 .queens-cell.edge-b {
-  border-bottom: 1px solid #6d6d6d;
+  border-bottom: 1px solid #666666;
 }
 
 .queens-cell.is-conflict {
@@ -1068,7 +1069,7 @@ button {
 .zip-wall {
   position: absolute;
   display: block;
-  background: #6d6d6d;
+  background: #555555;
 }
 
 .zip-numbers {
@@ -1132,11 +1133,11 @@ button {
 }
 
 .sudoku-cell.box-r {
-  border-right: 1px solid #6d6d6d;
+  border-right: 1px solid #666666;
 }
 
 .sudoku-cell.box-b {
-  border-bottom: 1px solid #6d6d6d;
+  border-bottom: 1px solid #666666;
 }
 
 .sudoku-cell.is-given {
@@ -1188,7 +1189,7 @@ button {
 }
 
 .sudoku-key:hover {
-  background: #4a4a4f;
+  background: #3a3a3a;
 }
 
 .sudoku-key.is-done {
@@ -1245,7 +1246,7 @@ button {
 .patch {
   position: absolute;
   box-sizing: border-box;
-  border: 1px solid #9d9d9d;
+  border: 1px solid #6a6a6a;
 }
 
 .patch-preview {
@@ -1416,7 +1417,7 @@ button {
 }
 
 .climb-row.is-given {
-  background: #202020;
+  background: #222222;
 }
 
 .climb-row.is-correct {
@@ -1476,7 +1477,7 @@ button {
 }
 
 .climb-input::placeholder {
-  color: #4a4a4a;
+  color: #444444;
 }
 
 .climb-input:focus {
@@ -1597,7 +1598,7 @@ button {
 }
 
 .modal-card.is-win {
-  border-color: #0e639c;
+  border-color: #444444;
 }
 
 .modal-glow {
