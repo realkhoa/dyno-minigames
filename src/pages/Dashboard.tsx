@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import {
-  ArrowLeftIcon,
   CrossclimbMark,
   PatchesMark,
   PinpointMark,
@@ -61,6 +60,15 @@ const GAMES: GameEntry[] = [
     mark: <SudokuMark />,
   },
   {
+    id: "patches",
+    name: "Patches",
+    blurb: "Split the grid into rectangles whose areas match the numbers.",
+    meta: "4 board sizes",
+    status: "live",
+    href: "#/patches",
+    mark: <PatchesMark />,
+  },
+  {
     id: "crossclimb",
     name: "Crossclimb",
     blurb: "Climb a ladder of words, one letter at a time, guided by clues.",
@@ -77,15 +85,6 @@ const GAMES: GameEntry[] = [
     status: "live",
     href: "#/pinpoint",
     mark: <PinpointMark />,
-  },
-  {
-    id: "patches",
-    name: "Patches",
-    blurb: "Split the grid into rectangles whose areas match the numbers.",
-    meta: "4 board sizes",
-    status: "live",
-    href: "#/patches",
-    mark: <PatchesMark />,
   },
   {
     id: "wend",
@@ -131,107 +130,58 @@ export function Dashboard() {
   });
 
   return (
-    <div className="app-shell">
-      <header className="site-header">
-        <a className="brand" href="#/" aria-label="Dyno MiniGames home">
-          <span className="brand-mark" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className="brand-text">
-            Dyno<span>MiniGames</span>
-          </span>
-        </a>
-        <div className="header-badges">
-          <span className="pill-chip">{dateLabel}</span>
+    <div className="start-page">
+      <header className="start-head">
+        <div className="start-head-text">
+          <h1>Start</h1>
+          <p>
+            Eight daily puzzles in the LinkedIn style — logic grids, path drawing and word games.
+            Everything runs in the browser; progress stays in this workspace.
+          </p>
         </div>
+        <span className="start-date">{dateLabel}</span>
       </header>
 
-      <main id="main">
-        <section className="hero">
-          <h1 id="games-title">Games</h1>
-          <p className="hero-lede">
-            Eight daily puzzles in the LinkedIn style: logic grids, path drawing and word games.
-            Everything runs in the browser — no account, no backend.
-          </p>
-          <div className="hero-stats">
-            <span className="pill-chip">
-              <span className="live-dot" aria-hidden="true" />
-              {liveCount} playable
-            </span>
-            <span className="pill-chip">All live</span>
-            <span className="pill-chip">Progress saved locally</span>
-          </div>
-        </section>
+      <div className="start-section-head">
+        <h2>Puzzles</h2>
+        <span>
+          {liveCount} available · {GAMES.length - liveCount} planned
+        </span>
+      </div>
 
-        <section className="games-section" aria-labelledby="games-title">
-          <div className="game-grid">
-            {GAMES.map((game) =>
-              game.status === "live" ? (
-                <a
-                  className="game-card is-live"
-                  data-game={game.id}
-                  href={game.href}
-                  key={game.id}
-                >
-                  <span className="game-icon" aria-hidden="true">
-                    {game.mark}
-                  </span>
-                  <div className="game-body">
-                    <div className="game-title-row">
-                      <h3 className="game-name">{game.name}</h3>
-                      <span className="tag live">
-                        {solvedToday[game.id] ? "Solved today" : "Play"}
-                      </span>
-                    </div>
-                    <p className="game-blurb">{game.blurb}</p>
-                  </div>
-                  <div className="game-foot">
-                    <span>{game.meta}</span>
-                    <span className="arrow" aria-hidden="true">
-                      →
-                    </span>
-                  </div>
-                </a>
-              ) : (
-                <div
-                  className="game-card is-soon"
-                  data-game={game.id}
-                  key={game.id}
-                  aria-disabled="true"
-                >
-                  <span className="game-icon" aria-hidden="true">
-                    {game.mark}
-                  </span>
-                  <div className="game-body">
-                    <div className="game-title-row">
-                      <h3 className="game-name">{game.name}</h3>
-                      <span className="tag soon">Soon</span>
-                    </div>
-                    <p className="game-blurb">{game.blurb}</p>
-                  </div>
-                  <div className="game-foot">
-                    <span>{game.meta}</span>
-                    <span className="arrow is-muted" aria-hidden="true">
-                      <ArrowLeftIcon className="flip" />
-                    </span>
-                  </div>
-                </div>
-              ),
-            )}
-          </div>
-        </section>
-      </main>
+      <div className="game-grid">
+        {GAMES.map((game) =>
+          game.status === "live" ? (
+            <a className="game-card is-live" data-game={game.id} href={game.href} key={game.id}>
+              <span className="game-icon" aria-hidden="true">
+                {game.mark}
+              </span>
+              <span className="game-name">{game.name}</span>
+              <span className="game-blurb">{game.blurb}</span>
+              <span className="game-meta">{game.meta}</span>
+              <span className="tag live">{solvedToday[game.id] ? "Solved today" : "Play"}</span>
+            </a>
+          ) : (
+            <div className="game-card is-soon" data-game={game.id} key={game.id} aria-disabled="true">
+              <span className="game-icon" aria-hidden="true">
+                {game.mark}
+              </span>
+              <span className="game-name">{game.name}</span>
+              <span className="game-blurb">{game.blurb}</span>
+              <span className="game-meta">{game.meta}</span>
+              <span className="tag soon">Soon</span>
+            </div>
+          ),
+        )}
+      </div>
 
-      <footer className="site-footer">
-        <span>Dyno MiniGames</span>
-        <span className="footer-sep">·</span>
-        <span>Built for GitHub Pages</span>
-        <span className="footer-sep">·</span>
-        <span>No accounts, no tracking, no backend.</span>
-      </footer>
+      <div className="start-hint">
+        <span className="start-hint-label">Tip</span>
+        <p>
+          Daily boards come from today's date; practice boards are random. Each game keeps its own
+          timer and saved progress.
+        </p>
+      </div>
     </div>
   );
 }

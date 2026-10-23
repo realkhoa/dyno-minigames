@@ -2,10 +2,10 @@
 
 **Live:** https://realkhoa.github.io/dyno-minigames/
 
-All eight LinkedIn-style daily puzzles in one quiet dashboard: Tango, Queens,
-Zip, Mini Sudoku, Patches, Crossclimb, Pinpoint and Wend. Static site, no backend,
-no accounts — every board is generated or curated locally and progress stays in
-the browser.
+All eight LinkedIn-style daily puzzles in a Visual Studio-flavoured workspace:
+document tabs, tool windows and a status bar, all flat and dark. Static site, no
+backend, no accounts — every board is generated or curated locally and progress
+stays in the browser.
 
 ![Dashboard](docs/dashboard.png)
 

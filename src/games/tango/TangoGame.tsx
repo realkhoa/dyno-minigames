@@ -21,7 +21,8 @@ import {
   type Relation,
   type Sym,
 } from "./engine";
-import { ArrowLeftIcon, CrossBadge, EqualBadge, LockIcon, MoonIcon, SunIcon } from "../../components/icons";
+import { CrossBadge, EqualBadge, LockIcon, MoonIcon, SunIcon } from "../../components/icons";
+import { GameShell } from "../../components/GameShell";
 import { Modal } from "../../components/Modal";
 import { clearTangoProgress, formatTime, loadTangoProgress, saveTangoProgress } from "../../lib/storage";
 
@@ -58,7 +59,6 @@ export function TangoGame() {
   const [hydratedId, setHydratedId] = useState<string | null>(null);
   const [focused, setFocused] = useState<number | null>(null);
   const [hover, setHover] = useState<number | null>(null);
-  const [helpOpen, setHelpOpen] = useState(false);
   const [winDismissed, setWinDismissed] = useState(false);
   const cellRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -234,30 +234,46 @@ export function TangoGame() {
   });
 
   return (
-    <div className="app-shell game-shell">
-      <header className="game-header">
-        <a className="back-link" href="#/">
-          <ArrowLeftIcon className="back-icon" />
-          All games
-        </a>
-        <div className="game-heading">
-          <h1>Tango</h1>
-          <p>
-            {mode === "daily" ? `Daily puzzle · ${dateLabel}` : "Practice"}
-            <span className="dot-separator">·</span>
-            {DIFFICULTY_LABELS[activeDifficulty]}
-            <span className="dot-separator">·</span>
-            {puzzle.solutionCount === 1
-              ? "1 solution"
-              : `${puzzle.solutionCount} solutions`}
+    <GameShell
+      title="Tango"
+      subtitle={
+        <>
+          {mode === "daily" ? `Daily puzzle · ${dateLabel}` : "Practice"}
+          <span className="dot-separator">·</span>
+          {DIFFICULTY_LABELS[activeDifficulty]}
+          <span className="dot-separator">·</span>
+          {puzzle.solutionCount === 1 ? "1 solution" : `${puzzle.solutionCount} solutions`}
+        </>
+      }
+      helpTitle="How to play Tango"
+      help={
+        <>
+          <p className="modal-lede">
+            Fill the grid so every cell is a sun or a moon — and no line breaks the rules.
           </p>
-        </div>
-        <button className="btn btn-ghost btn-sm" type="button" onClick={() => setHelpOpen(true)}>
-          How to play
-        </button>
-      </header>
-
-      <div className="game-layout">
+          <ul className="modal-rules">
+            <li>
+              Every row and every column contains <strong>three suns</strong> and{" "}
+              <strong>three moons</strong>.
+            </li>
+            <li>Three identical symbols may never sit next to each other in a row or column.</li>
+            <li>
+              Cells joined by <span className="inline-badge"><EqualBadge /></span> must be the
+              same; cells joined by <span className="inline-badge"><CrossBadge /></span> must
+              differ.
+            </li>
+            <li>
+              Cells marked with a <strong>small lock</strong> are pre-filled clues — they cannot be
+              edited.
+            </li>
+          </ul>
+          <p className="modal-note">
+            Difficulty is set by how many valid grids a puzzle has: Easy accepts many, Deadly is
+            guaranteed to have exactly one. Any valid grid wins.
+          </p>
+        </>
+      }
+    >
         <section className="board-panel" aria-label="Puzzle board">
           <div className="board-toolbar">
             <div className="segmented" role="group" aria-label="Game mode">
@@ -478,51 +494,8 @@ export function TangoGame() {
               </li>
               <li>Cells with a small lock are fixed clues.</li>
             </ul>
-            <button className="text-button" type="button" onClick={() => setHelpOpen(true)}>
-              Read the full rules
-            </button>
           </section>
         </aside>
-      </div>
-
-      <footer className="site-footer">
-        <span>Dyno MiniGames</span>
-        <span className="footer-sep">·</span>
-        <span>Progress is saved in this browser.</span>
-      </footer>
-
-      {helpOpen ? (
-        <Modal title="How to play Tango" onClose={() => setHelpOpen(false)}>
-          <p className="modal-lede">
-            Fill the grid so every cell is a sun or a moon — and no line breaks the rules.
-          </p>
-          <ul className="modal-rules">
-            <li>
-              Every row and every column contains <strong>three suns</strong> and{" "}
-              <strong>three moons</strong>.
-            </li>
-            <li>Three identical symbols may never sit next to each other in a row or column.</li>
-            <li>
-              Cells joined by <span className="inline-badge"><EqualBadge /></span> must be the
-              same; cells joined by <span className="inline-badge"><CrossBadge /></span> must
-              differ.
-            </li>
-            <li>
-              Cells marked with a <strong>small lock</strong> are pre-filled clues — they cannot be
-              edited.
-            </li>
-          </ul>
-          <p className="modal-note">
-            Difficulty is set by how many valid grids a puzzle has: Easy accepts many, Deadly is
-            guaranteed to have exactly one. Any valid grid wins.
-          </p>
-          <div className="modal-actions">
-            <button className="btn btn-primary" type="button" onClick={() => setHelpOpen(false)}>
-              Got it
-            </button>
-          </div>
-        </Modal>
-      ) : null}
 
       {won && !winDismissed ? (
         <Modal
@@ -564,6 +537,6 @@ export function TangoGame() {
           </p>
         </Modal>
       ) : null}
-    </div>
+    </GameShell>
   );
 }
