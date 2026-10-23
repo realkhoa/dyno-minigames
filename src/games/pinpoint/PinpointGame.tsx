@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GameShell } from "../../components/GameShell";
 import { Modal } from "../../components/Modal";
 import { clearGameProgress, formatTime, loadGameJson, saveGameJson } from "../../lib/storage";
@@ -34,6 +34,7 @@ export function PinpointGame() {
   const [seconds, setSeconds] = useState(0);
   const [hydratedId, setHydratedId] = useState<string | null>(null);
   const [winDismissed, setWinDismissed] = useState(false);
+  const composing = useRef(false);
 
   useEffect(() => {
     const saved = loadGameJson<SavedPinpoint>("pinpoint", selected.id);
@@ -67,8 +68,7 @@ export function PinpointGame() {
     });
   }, [revealed, attempts, solved, seconds, selected.id, hydratedId]);
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
+  const submit = () => {
     if (solved) return;
     const value = guess.trim();
     if (!value) return;
@@ -191,20 +191,39 @@ export function PinpointGame() {
             </button>
           </div>
 
-          <form className="pinpoint-form" onSubmit={submit}>
+          <div className="pinpoint-form">
             <input
               value={guess}
               onChange={(event) => setGuess(event.target.value)}
+              onCompositionStart={() => {
+                composing.current = true;
+              }}
+              onCompositionEnd={() => {
+                composing.current = false;
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter") return;
+                // Enter also confirms a Vietnamese/IME composition; do not
+                // submit the half-composed guess in that case.
+                if (event.nativeEvent.isComposing || composing.current) return;
+                event.preventDefault();
+                submit();
+              }}
               placeholder="Name the category"
               aria-label="Your answer"
               autoComplete="off"
               spellCheck={false}
               disabled={solved}
             />
-            <button className="btn btn-primary btn-sm" type="submit" disabled={solved || !guess.trim()}>
+            <button
+              className="btn btn-primary btn-sm"
+              type="button"
+              onClick={submit}
+              disabled={solved || !guess.trim()}
+            >
               Guess
             </button>
-          </form>
+          </div>
         </div>
 
         <div

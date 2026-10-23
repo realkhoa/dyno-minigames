@@ -67,12 +67,26 @@ export function CrossclimbGame() {
     saveGameJson<SavedCrossclimb>("crossclimb", selected.id, { entries, seconds, solved: won });
   }, [entries, seconds, won, selected.id, hydratedId]);
 
+  const composing = useRef(false);
+
+  /** Fold Vietnamese/IME text to plain A-Z before storing it. */
+  const normalise = (raw: string): string =>
+    raw
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/gi, "d")
+      .toUpperCase()
+      .replace(/[^A-Z]/g, "")
+      .slice(0, wordLength);
+
   const update = (index: number, value: string) => {
-    const cleaned = value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, wordLength);
+    // While an IME is composing, keep the raw text so the composition is not
+    // broken by sanitising every keystroke.
+    const next = composing.current ? value : normalise(value);
     setEntries((previous) => {
-      const next = previous.slice();
-      next[index] = cleaned;
-      return next;
+      const copy = previous.slice();
+      copy[index] = next;
+      return copy;
     });
   };
 
@@ -193,10 +207,17 @@ export function CrossclimbGame() {
                       }}
                       className="climb-input"
                       value={entries[middleIndex]}
-                      maxLength={wordLength}
                       onChange={(event) => update(middleIndex, event.target.value)}
+                      onCompositionStart={() => {
+                        composing.current = true;
+                      }}
+                      onCompositionEnd={(event) => {
+                        composing.current = false;
+                        update(middleIndex, event.currentTarget.value);
+                      }}
                       onKeyDown={(event) => {
                         if (event.key === "Enter") {
+                          if (event.nativeEvent.isComposing) return;
                           event.preventDefault();
                           const next = inputs.current[middleIndex + 1];
                           if (next) next.focus();

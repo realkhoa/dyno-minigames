@@ -602,6 +602,31 @@ try {
       input.dispatchEvent(new Event('input', { bubbles: true }));
     })()`);
 
+  // Vietnamese/IME text must survive composition and fold to ASCII on commit.
+  await cdp.evaluate<void>(`(() => {
+    const input = document.querySelectorAll('.climb-input')[0];
+    input.focus();
+    input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true, data: '' }));
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+    setter.call(input, 'hè');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  })()`);
+  await sleep(120);
+  const composingValue = await cdp.evaluate<string>(
+    "document.querySelectorAll('.climb-input')[0].value",
+  );
+  check("crossclimb keeps IME text while composing", composingValue === "hè", composingValue);
+
+  await cdp.evaluate<void>(`(() => {
+    const input = document.querySelectorAll('.climb-input')[0];
+    input.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: 'hè' }));
+  })()`);
+  await sleep(120);
+  const folded = await cdp.evaluate<string>(
+    "document.querySelectorAll('.climb-input')[0].value",
+  );
+  check("crossclimb folds Vietnamese to ASCII", folded === "HE", folded);
+
   await setInput(".climb-input", 0, "ZZZZ");
   await sleep(150);
   const wrongClimb = await cdp.evaluate<number>(
@@ -649,13 +674,13 @@ try {
   check("pinpoint reveals the next clue", clueCount === 2, `${clueCount} clues`);
 
   await setInput(".pinpoint-form input", 0, "definitely not the answer");
-  await cdp.evaluate<void>("document.querySelector('.pinpoint-form').requestSubmit()");
+  await cdp.evaluate<void>("[...document.querySelectorAll('.pinpoint-form button')].find((b) => b.textContent?.trim() === 'Guess')?.click()");
   await sleep(200);
   const wrongGuess = await cdp.evaluate<boolean>("!!document.querySelector('.board-status.is-warn')");
   check("pinpoint rejects a wrong category", wrongGuess);
 
   await setInput(".pinpoint-form input", 0, pinpoint.category.answer);
-  await cdp.evaluate<void>("document.querySelector('.pinpoint-form').requestSubmit()");
+  await cdp.evaluate<void>("[...document.querySelectorAll('.pinpoint-form button')].find((b) => b.textContent?.trim() === 'Guess')?.click()");
   await waitFor(cdp, "!!document.querySelector('.modal-card.is-win')", "the Pinpoint win dialog", 8000);
   const pinpointWin = await cdp.evaluate<string>(
     "document.querySelector('.modal-card.is-win .modal-title')?.textContent ?? ''",
