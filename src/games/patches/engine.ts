@@ -62,6 +62,9 @@ const SETTINGS: Record<Difficulty, { size: number; patches: number; maxArea: num
   deadly: { size: 9, patches: 16, maxArea: 8 },
 };
 
+/** Bumped whenever the generator changes, so old saved boards are ignored. */
+export const PUZZLE_VERSION = "v2";
+
 interface Rect {
   x: number;
   y: number;
@@ -290,7 +293,7 @@ export function generatePuzzle(
 
     const clues: PatchClue[] = rects.map((rect) => ({ ...rect, area: areaOf(rect) }));
     const puzzle: PatchesPuzzle = {
-      id: `${difficulty}:${seed}`,
+      id: `${PUZZLE_VERSION}:${difficulty}:${seed}`,
       size: settings.size,
       difficulty,
       clues,

@@ -102,11 +102,11 @@ export function Dashboard() {
   const solvedTango = loadGameProgress("tango", `deadly:${todayKey()}`)?.solved === true;
   const solvedQueens = loadGameProgress("queens", `hard:${todayKey()}`)?.solved === true;
   const solvedZip =
-    loadGameJson<{ solved?: boolean }>("zip", `medium:${todayKey()}`)?.solved === true;
+    loadGameJson<{ solved?: boolean }>("zip", `v2:medium:${todayKey()}`)?.solved === true;
   const solvedSudoku =
     loadGameJson<{ solved?: boolean }>("sudoku", `medium:${todayKey()}`)?.solved === true;
   const solvedPatches =
-    loadGameJson<{ solved?: boolean }>("patches", `medium:${todayKey()}`)?.solved === true;
+    loadGameJson<{ solved?: boolean }>("patches", `v2:medium:${todayKey()}`)?.solved === true;
   const solvedCrossclimb =
     loadGameJson<{ solved?: boolean }>("crossclimb", `daily:${todayKey()}`)?.solved === true;
   const solvedPinpoint =

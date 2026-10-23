@@ -48,6 +48,9 @@ const SETTINGS: Record<Difficulty, { size: number; numbers: number; walls: numbe
   deadly: { size: 7, numbers: 4, walls: 10 },
 };
 
+/** Bumped whenever the generator changes, so old saved boards are ignored. */
+export const PUZZLE_VERSION = "v2";
+
 export { areAdjacent, cellIndex, neighbors, randomPath } from "../../lib/grid.ts";
 
 export function edgeKey(a: number, b: number): string {
@@ -116,7 +119,7 @@ export function generatePuzzle(seed: string, difficulty: Difficulty = "medium"):
     const walls = pickWalls(size, path, settings.walls, rng);
 
     return {
-      id: `${difficulty}:${seed}`,
+      id: `${PUZZLE_VERSION}:${difficulty}:${seed}`,
       size,
       difficulty,
       numbers,
